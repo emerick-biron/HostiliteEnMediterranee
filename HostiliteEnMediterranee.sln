@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostiliteEnMediterranee.Ser
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HostiliteEnMediterranee.Client", "HostiliteEnMediterranee.Client\HostiliteEnMediterranee.Client.csproj", "{EDD58EDD-9521-45BA-AC2D-1EA7E92CC533}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HostiliteEnMediterranee.Models", "HostiliteEnMediterranee.Models\HostiliteEnMediterranee.Models.csproj", "{CBF84392-48A2-4ECD-B9CE-12B064E851B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{EDD58EDD-9521-45BA-AC2D-1EA7E92CC533}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDD58EDD-9521-45BA-AC2D-1EA7E92CC533}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDD58EDD-9521-45BA-AC2D-1EA7E92CC533}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBF84392-48A2-4ECD-B9CE-12B064E851B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBF84392-48A2-4ECD-B9CE-12B064E851B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBF84392-48A2-4ECD-B9CE-12B064E851B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBF84392-48A2-4ECD-B9CE-12B064E851B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
