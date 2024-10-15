@@ -1,3 +1,5 @@
+using HostiliteEnMediterranee.Server.Exceptions;
+
 namespace HostiliteEnMediterranee.Server.Entities;
 
 public class Player
@@ -7,19 +9,18 @@ public class Player
     public Player(string name)
     {
         Name = name;
-        Grid = new char[GridSize][];
-        for (var i = 0; i < GridSize; i++)
+        Grid = new char[GridSize, GridSize];
+        for (var row = 0; row < GridSize; row++)
         {
-            Grid[i] = new char[GridSize];
-            for (var j = 0; j < GridSize; j++)
+            for (var col = 0; col < GridSize; col++)
             {
-                Grid[i][j] = '\0';
+                Grid[row, col] = '\0';
             }
         }
     }
 
     public string Name { get; private set; }
-    public char[][] Grid { get; }
+    public char[,] Grid { get; }
 
     public void GenerateRandomGrid(List<Ship> ships)
     {
@@ -50,7 +51,7 @@ public class Player
 
             for (var i = 0; i < size; i++)
             {
-                if (Grid[row][col + i] != '\0') return false;
+                if (Grid[row, col + i] != '\0') return false;
             }
         }
         else
@@ -59,7 +60,7 @@ public class Player
 
             for (var i = 0; i < size; i++)
             {
-                if (Grid[row + i][col] != '\0') return false;
+                if (Grid[row + i, col] != '\0') return false;
             }
         }
 
@@ -72,15 +73,45 @@ public class Player
         {
             for (var i = 0; i < ship.Size; i++)
             {
-                Grid[row][col + i] = ship.Type;
+                Grid[row, col + i] = ship.Type;
             }
         }
         else
         {
             for (var i = 0; i < ship.Size; i++)
             {
-                Grid[row + i][col] = ship.Type;
+                Grid[row + i, col] = ship.Type;
             }
+        }
+    }
+
+    public bool HasLost()
+    {
+        for (var row = 0; row < GridSize; row++)
+        {
+            for (var col = 0; col < GridSize; col++)
+            {
+                var cell = Grid[row, col];
+                if (cell != '\0' && cell != 'O' && cell != 'X') return false;
+            }
+        }
+
+        return true;
+    }
+
+    public bool Shoot(int row, int col)
+    {
+        switch (Grid[row, col])
+        {
+            case 'X':
+            case 'O':
+                throw new CellAlreadyShotException($"Cell[{row}, {col}] has already been shot");
+            case '\0':
+                Grid[row, col] = 'O';
+                return false;
+            default:
+                Grid[row, col] = 'X';
+                return true;
         }
     }
 }
