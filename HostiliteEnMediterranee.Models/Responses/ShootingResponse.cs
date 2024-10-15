@@ -5,6 +5,6 @@ namespace HostiliteEnMediterranee.Models.Responses;
 public record ShootingResponse(
     GameStatusDto GameStatus,
     string? WinnerName,
-    ShootingStatusDto ShootingStatus,
+    bool HasHit,
     List<CoordinatesDto>? OpponentShoots
 );
