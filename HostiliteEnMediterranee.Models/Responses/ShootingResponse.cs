@@ -6,5 +6,5 @@ public record ShootingResponse(
     GameStatusDto GameStatus,
     string? WinnerName,
     bool HasHit,
-    List<CoordinatesDto>? OpponentShoots
+    List<CoordinatesDto> OpponentShoots
 );
