@@ -4,5 +4,5 @@ public enum GameStatusDto
 {
     NotStarted,
     InProgress,
-    Completed,
+    Over,
 }
