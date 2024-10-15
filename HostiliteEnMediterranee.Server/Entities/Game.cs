@@ -1,5 +1,3 @@
-using HostiliteEnMediterranee.Server.Exceptions;
-
 namespace HostiliteEnMediterranee.Server.Entities;
 
 public class Game
@@ -40,20 +38,6 @@ public class Game
         return hit;
     }
 
-    // ReSharper disable once InconsistentNaming
-    public bool AIShot()
-    {
-        if (CurrentPlayer is AIPlayer aiPlayer)
-        {
-            var shoot = aiPlayer.GetNextShot();
-            var hit = NextPlayer.ReceiveShot(shoot.Row, shoot.Column);
-            HandlePostShot(hit);
-            return hit;
-        }
-
-        throw new NotAIPlayerException("Current player is not an AI player");
-    }
-
     private void HandlePostShot(bool hit)
     {
         if (NextPlayer.HasLost())
@@ -61,7 +45,7 @@ public class Game
             Status = GameStatus.Over;
             Winner = CurrentPlayer;
         }
-        else if (hit)
+        else if (!hit)
         {
             SwitchCurrentPlayer();
         }

@@ -51,14 +51,34 @@ public class GameService(GameRepository gameRepository)
         var shootCoordinates = shootingRequest.ShootCoordinates;
         var playerHit = game.CurrentPlayerShot(shootCoordinates.Row, shootCoordinates.Column);
 
-        // if (playerHit)
-        // {
+        if (playerHit)
+        {
+            return new ShootingResponse(
+                GameStatus: game.Status.ToDto(),
+                WinnerName: game.Winner?.Name,
+                HasHit: playerHit,
+                OpponentShoots: []
+            );
+        }
+
+        var opponentShots = new List<CoordinatesDto>();
+
+        if (game.CurrentPlayer is AIPlayer aiPlayer)
+        {
+            bool aiHit;
+            do
+            {
+                var shot = aiPlayer.GetNextShot();
+                aiHit = game.CurrentPlayerShot(shot.Row, shot.Column);
+                opponentShots.Add(new CoordinatesDto(shot.Row, shot.Column));
+            } while (aiHit && game.Status != GameStatus.Over);
+        }
+
         return new ShootingResponse(
             GameStatus: game.Status.ToDto(),
             WinnerName: game.Winner?.Name,
             HasHit: playerHit,
-            OpponentShoots: []
+            OpponentShoots: opponentShots
         );
-        // }
     }
 }
