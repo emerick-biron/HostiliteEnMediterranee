@@ -7,14 +7,12 @@ namespace HostiliteEnMediterranee.Server.Services;
 
 public class GameService(GameRepository gameRepository)
 {
-    private readonly GameRepository _gameRepository = gameRepository;
-
     public StartGameResponse StartGame()
     {
         var player = new Player("Player");
         var ia = new Player("IA");
         var game = new Game(player, ia);
-        _gameRepository.Save(game);
+        gameRepository.Save(game);
         game.Start();
 
         var playerShips = new List<ShipDto>();
@@ -22,7 +20,7 @@ public class GameService(GameRepository gameRepository)
         {
             for (var col = 0; col < Player.GridSize; col++)
             {
-                var cell = player.Grid[row][col];
+                var cell = player.Grid[row, col];
                 if (cell != '\0')
                 {
                     var ship = playerShips.FirstOrDefault(s => s.Model == cell);

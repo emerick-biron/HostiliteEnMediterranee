@@ -1,7 +1,10 @@
+using HostiliteEnMediterranee.Models.Dto;
+
 namespace HostiliteEnMediterranee.Server.Entities;
 
 public class Game
 {
+    private readonly List<CoordinatesDto> _aiPossibleShots = [];
     public readonly Guid Id = Guid.NewGuid();
     public readonly List<Player> Players = [];
 
@@ -9,7 +12,20 @@ public class Game
     {
         Players.Add(player1);
         Players.Add(player2);
+
+        var possibleShots = new List<CoordinatesDto>();
+        for (var row = 0; row < Player.GridSize; row++)
+        {
+            for (var col = 0; col < Player.GridSize; col++)
+            {
+                possibleShots.Add(new CoordinatesDto(row, col));
+            }
+        }
+
+        _aiPossibleShots.AddRange(possibleShots.OrderBy(_ => Random.Shared.Next()).ToList());
     }
+
+    public Player? Winner { get; private set; }
 
     private int CurrentPlayerIndex { get; set; } = 0;
     public GameStatus Status { get; private set; } = GameStatus.NotStarted;

@@ -6,16 +6,35 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<GameRepository>();
 builder.Services.AddTransient<GameService>();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
+app.UseCors();
+app.UsePathBase("/api");
 
-app.UseCors(c => c.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+app.Use(async (context, next) =>
+{
+    var logger = app.Logger;
+    logger.LogInformation("Request received: {Method} {BASE}{Path}", context.Request.Method, context.Request.PathBase,
+        context.Request.Path);
+    await next.Invoke();
+    logger.LogInformation("Response status: {StatusCode}", context.Response.StatusCode);
+});
+
+
 app.MapPost("/games/start", ([FromServices] GameService gameService) =>
 {
     var response = gameService.StartGame();
     return Results.Ok(response);
 });
 
-app.UsePathBase("/api");
 app.Run();
