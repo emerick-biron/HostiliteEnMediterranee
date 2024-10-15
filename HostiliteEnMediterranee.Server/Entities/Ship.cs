@@ -1,26 +1,16 @@
 namespace HostiliteEnMediterranee.Server.Entities;
 
-public class Ship(char model, int size)
+public class Ship(char type, int size)
 {
-    public char Model { get; private set; } = model;
-    public int Size { get; private set; } = size;
-    public bool IsDestroyed { get; set; } = false;
-    public List<Position> Positions { get; private set; } = [];
-    public Direction Direction { get; private set; }
+    public static readonly List<Ship> Ships =
+    [
+        new Ship('A', 5), // carrier
+        new Ship('B', 4), // battleship
+        new Ship('C', 3), // cruiser
+        new Ship('D', 3), // submarine
+        new Ship('E', 2), // destroyer
+    ];
 
-    public void Place(Position startPosition, Direction direction)
-    {
-        Direction = direction;
-        
-        startPosition.IsHit = false;
-        Positions.Add(startPosition);
-        
-        for (var i = 1; i < Size; i++)
-        {
-            var position = Direction == Direction.Horizontal
-                ? new Position(startPosition.X + i, startPosition.Y)
-                : new Position(startPosition.X, startPosition.Y + i);
-            Positions.Add(position);
-        }
-    }
+    public char Type { get; } = type;
+    public int Size { get; } = size;
 }
