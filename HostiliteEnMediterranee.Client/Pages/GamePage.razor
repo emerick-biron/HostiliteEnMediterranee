@@ -1,0 +1,80 @@
+﻿@page "/game"
+<div class="gameboard">
+    <div class="grid">
+        @for (int y = 0; y < GameState.GridSize; y++)
+        {
+            <div class="row">
+                @for (int x = 0; x < GameState.GridSize; x++)
+                {
+                    var cell = GameState.OpponentGrid[x, y];
+                    var row = y;
+                    var col = x;
+                    <span class="cell @(cell == true ? "hit" : cell == false ? "miss" : "sea")"
+                        @onclick="() => CellClicked(col, row)">
+                    </span>
+                }
+            </div>
+        }
+    </div>
+    <div class="grid">
+        @for (int y = 0; y < GameState.GridSize; y++)
+        {
+            <div class="row">
+                @for (int x = 0; x < GameState.GridSize; x++)
+                {
+                    var cell = GameState.PlayerGrid[x, y];
+                    <span class="cell @(cell == 'X' ? "hit" : cell == 'O' ? "miss" : "sea")">
+                        @(cell != '/' && cell != 'X' && cell != 'O' ? cell : "")
+                    </span>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Inject] private GameApiService GameApiService { get; set; }
+    [Inject] private GameState GameState { get; set; }
+
+    private void CellClicked(int x, int y)
+    {
+        GameState.UpdateOpponentGrid(x, y, true);
+        Console.WriteLine($"{x}, {y}");
+        StateHasChanged();
+    }
+}
+
+<style>
+    .grid {
+        display: flex;
+        background-image: url('assets/sea.jpg');
+        background-size: cover;
+        width: fit-content;
+    }
+
+    .cell {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        background-size: cover;
+    }
+
+    .cell.hit {
+        background-image: url('assets/hit.png');
+        cursor: not-allowed;
+    }
+
+    .cell.miss {
+        background-image: url('assets/miss.png');
+        cursor: not-allowed;
+    }
+
+    .cell.sea:hover {
+        background-color: rgba(255, 255, 255, 0.5);
+    }
+
+</style>

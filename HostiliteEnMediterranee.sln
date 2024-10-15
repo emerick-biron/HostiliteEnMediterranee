@@ -5,9 +5,9 @@ VisualStudioVersion = 17.11.35312.102
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostiliteEnMediterranee.Server", "HostiliteEnMediterranee.Server\HostiliteEnMediterranee.Server.csproj", "{1CC0AA81-80CD-48CB-B876-EDF4131E1626}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HostiliteEnMediterranee.Client", "HostiliteEnMediterranee.Client\HostiliteEnMediterranee.Client.csproj", "{EDD58EDD-9521-45BA-AC2D-1EA7E92CC533}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostiliteEnMediterranee.Client", "HostiliteEnMediterranee.Client\HostiliteEnMediterranee.Client.csproj", "{EDD58EDD-9521-45BA-AC2D-1EA7E92CC533}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HostiliteEnMediterranee.Models", "HostiliteEnMediterranee.Models\HostiliteEnMediterranee.Models.csproj", "{CBF84392-48A2-4ECD-B9CE-12B064E851B7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HostiliteEnMediterranee.Models", "HostiliteEnMediterranee.Models\HostiliteEnMediterranee.Models.csproj", "{CBF84392-48A2-4ECD-B9CE-12B064E851B7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,5 +30,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2031452E-7205-4B91-8D2D-9A058B54FEF0}
 	EndGlobalSection
 EndGlobal

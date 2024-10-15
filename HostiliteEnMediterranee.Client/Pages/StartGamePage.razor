@@ -1,0 +1,15 @@
+﻿@page "/"
+<button class="btn btn-primary" @onclick="StartNewGameAsync">Start New Game</button>
+
+@code {
+    [Inject] private GameApiService GameApiService { get; set; }
+    [Inject] private NavigationManager NavigationManager { get; set; }
+    [Inject] private GameState GameState { get; set; }
+
+    private async Task StartNewGameAsync()
+    {
+        var startGameResponse = await GameApiService.StartGameAsync();
+        GameState.UpdatePlayerShips(startGameResponse.PlayerShips);
+        NavigationManager.NavigateTo("/game");
+    }
+}
