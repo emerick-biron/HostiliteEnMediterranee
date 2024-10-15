@@ -1,6 +1,6 @@
 {
-  "name": "HostiliteEnMediterranee.Client",
-  "short_name": "HostiliteEnMediterranee.Client",
+  "name": "Hostilité En Mediterranée",
+  "short_name": "Hostilité En Mediterranée",
   "id": "./",
   "start_url": "./",
   "display": "standalone",

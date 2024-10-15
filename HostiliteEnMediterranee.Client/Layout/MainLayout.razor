@@ -1,16 +1,42 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+
+<div class="main-layout">
+    <header>
+        <h1>My Blazor Application</h1>
+        <nav>
+            <NavLink class="nav-link" href="">Home</NavLink>
+            <NavLink class="nav-link" href="game">Game</NavLink>
+        </nav>
+    </header>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
-            @Body
-        </article>
+        @Body
     </main>
+
+    <footer>
+        <p>© 2024 My Blazor Application</p>
+    </footer>
 </div>
+
+<style>
+    .main-layout {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+    header {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-bottom: 1px solid #e7e7e7;
+    }
+    main {
+        flex: 1;
+        padding: 15px;
+    }
+    footer {
+        background-color: #f8f9fa;
+        text-align: center;
+        padding: 10px;
+        border-top: 1px solid #e7e7e7;
+    }
+</style>
