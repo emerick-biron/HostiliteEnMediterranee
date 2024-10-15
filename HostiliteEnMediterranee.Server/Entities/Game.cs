@@ -19,7 +19,7 @@ public class Game
     public Player CurrentPlayer => Players[CurrentPlayerIndex];
     public Player? Winner { get; private set; }
 
-    private void NextTurn()
+    private void SwitchCurrentPlayer()
     {
         CurrentPlayerIndex = (CurrentPlayerIndex + 1) % 2;
     }
@@ -36,7 +36,7 @@ public class Game
     public bool CurrentPlayerShot(int row, int col)
     {
         var hit = NextPlayer.ReceiveShot(row, col);
-        HandlePostShot();
+        HandlePostShot(hit);
         return hit;
     }
 
@@ -47,23 +47,23 @@ public class Game
         {
             var shoot = aiPlayer.GetNextShot();
             var hit = NextPlayer.ReceiveShot(shoot.Row, shoot.Column);
-            HandlePostShot();
+            HandlePostShot(hit);
             return hit;
         }
 
         throw new NotAIPlayerException("Current player is not an AI player");
     }
 
-    private void HandlePostShot()
+    private void HandlePostShot(bool hit)
     {
         if (NextPlayer.HasLost())
         {
             Status = GameStatus.Over;
             Winner = CurrentPlayer;
         }
-        else
+        else if (hit)
         {
-            NextTurn();
+            SwitchCurrentPlayer();
         }
     }
 }

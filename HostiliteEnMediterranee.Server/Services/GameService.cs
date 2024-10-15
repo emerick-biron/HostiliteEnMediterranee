@@ -1,6 +1,8 @@
 using HostiliteEnMediterranee.Models.Dto;
+using HostiliteEnMediterranee.Models.Requests;
 using HostiliteEnMediterranee.Models.Responses;
 using HostiliteEnMediterranee.Server.Entities;
+using HostiliteEnMediterranee.Server.Exceptions;
 using HostiliteEnMediterranee.Server.Repositories;
 
 namespace HostiliteEnMediterranee.Server.Services;
@@ -38,6 +40,30 @@ public class GameService(GameRepository gameRepository)
         return new StartGameResponse(
             game.Id,
             playerShips
+        );
+    }
+
+    public ShootingResponse Attack(ShootingRequest shootingRequest)
+    {
+        var game = gameRepository.FindById(shootingRequest.GameId) ?? throw new GameNotFoundException("Game not found");
+        var shootCoordinates = shootingRequest.ShootCoordinates;
+        var playerHit = game.CurrentPlayerShot(shootCoordinates.Row, shootCoordinates.Column);
+
+        var opponentShots = new List<CoordinatesDto>();
+        var aiHit = false;
+
+        if (game.Status != GameStatus.Over && game.NextPlayer is AIPlayer aiPlayer)
+        {
+            var aiShot = aiPlayer.GetNextShot();
+            aiHit = game.NextPlayer.ReceiveShot(aiShot.Row, aiShot.Column);
+            opponentShots.Add(new CoordinatesDto(aiShot.Row, aiShot.Column));
+        }
+
+        return new ShootingResponse(
+            GameStatus: (GameStatusDto)game.Status,
+            WinnerName: game.Winner?.Name,
+            ShootingStatus: playerHit ? ShootingStatusDto.Hit : ShootingStatusDto.Miss,
+            OpponentShoots: opponentShots
         );
     }
 }
