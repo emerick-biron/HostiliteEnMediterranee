@@ -14,7 +14,7 @@ public class GameService(GameRepository gameRepository)
         var player = new Player("Player");
         var ia = new Player("IA");
         var game = new Game(player, ia);
-
+        _gameRepository.Save(game);
         game.Start();
 
         var playerShips = new List<ShipDto>();

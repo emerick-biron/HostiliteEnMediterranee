@@ -6,7 +6,7 @@ public class GameRepository
 {
     private readonly Dictionary<Guid, Game> _games = new();
 
-    public Game SaveGame(Game game)
+    public Game Save(Game game)
     {
         _games[game.Id] = game;
         return game;

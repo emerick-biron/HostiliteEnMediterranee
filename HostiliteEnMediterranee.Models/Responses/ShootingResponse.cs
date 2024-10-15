@@ -2,7 +2,7 @@ using HostiliteEnMediterranee.Models.Dto;
 
 namespace HostiliteEnMediterranee.Models.Responses;
 
-public class ShootingResponse(
+public record ShootingResponse(
     GameStatusDto GameStatus,
     string? WinnerName,
     ShootingStatusDto ShootingStatus,
