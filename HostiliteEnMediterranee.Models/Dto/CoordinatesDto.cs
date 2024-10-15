@@ -1,3 +1,3 @@
 namespace HostiliteEnMediterranee.Models.Dto;
 
-public record CoordinatesDto(int X, int Y);
+public record CoordinatesDto(int Row, int Column);
