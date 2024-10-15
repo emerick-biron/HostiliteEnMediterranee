@@ -17,29 +17,27 @@ public class GameService(GameRepository gameRepository)
 
         var playerShips = new List<ShipDto>();
         for (var row = 0; row < Player.GridSize; row++)
+        for (var col = 0; col < Player.GridSize; col++)
         {
-            for (var col = 0; col < Player.GridSize; col++)
+            var cell = player.Grid[row, col];
+            if (cell != '\0')
             {
-                var cell = player.Grid[row, col];
-                if (cell != '\0')
+                var ship = playerShips.FirstOrDefault(s => s.Model == cell);
+                if (ship == null)
                 {
-                    var ship = playerShips.FirstOrDefault(s => s.Model == cell);
-                    if (ship == null)
-                    {
-                        ship = new ShipDto(cell, [new CoordinatesDto(row, col)]);
-                        playerShips.Add(ship);
-                    }
-                    else
-                    {
-                        ship.Coordinates.Add(new CoordinatesDto(row, col));
-                    }
+                    ship = new ShipDto(cell, [new CoordinatesDto(row, col)]);
+                    playerShips.Add(ship);
+                }
+                else
+                {
+                    ship.Coordinates.Add(new CoordinatesDto(row, col));
                 }
             }
         }
 
         return new StartGameResponse(
-            GameId: game.Id,
-            PlayerShips: playerShips
+            game.Id,
+            playerShips
         );
     }
 }

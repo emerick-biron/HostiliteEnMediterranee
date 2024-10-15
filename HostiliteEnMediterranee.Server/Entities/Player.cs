@@ -11,12 +11,8 @@ public class Player
         Name = name;
         Grid = new char[GridSize, GridSize];
         for (var row = 0; row < GridSize; row++)
-        {
-            for (var col = 0; col < GridSize; col++)
-            {
-                Grid[row, col] = '\0';
-            }
-        }
+        for (var col = 0; col < GridSize; col++)
+            Grid[row, col] = '\0';
     }
 
     public string Name { get; private set; }
@@ -50,18 +46,16 @@ public class Player
             if (col + size > GridSize) return false;
 
             for (var i = 0; i < size; i++)
-            {
-                if (Grid[row, col + i] != '\0') return false;
-            }
+                if (Grid[row, col + i] != '\0')
+                    return false;
         }
         else
         {
             if (row + size > GridSize) return false;
 
             for (var i = 0; i < size; i++)
-            {
-                if (Grid[row + i, col] != '\0') return false;
-            }
+                if (Grid[row + i, col] != '\0')
+                    return false;
         }
 
         return true;
@@ -70,36 +64,26 @@ public class Player
     private void PlaceShip(int row, int col, Ship ship, Direction direction)
     {
         if (direction == Direction.Horizontal)
-        {
             for (var i = 0; i < ship.Size; i++)
-            {
                 Grid[row, col + i] = ship.Type;
-            }
-        }
         else
-        {
             for (var i = 0; i < ship.Size; i++)
-            {
                 Grid[row + i, col] = ship.Type;
-            }
-        }
     }
 
     public bool HasLost()
     {
         for (var row = 0; row < GridSize; row++)
+        for (var col = 0; col < GridSize; col++)
         {
-            for (var col = 0; col < GridSize; col++)
-            {
-                var cell = Grid[row, col];
-                if (cell != '\0' && cell != 'O' && cell != 'X') return false;
-            }
+            var cell = Grid[row, col];
+            if (cell != '\0' && cell != 'O' && cell != 'X') return false;
         }
 
         return true;
     }
 
-    public bool Shoot(int row, int col)
+    public bool ReceiveShot(int row, int col)
     {
         switch (Grid[row, col])
         {

@@ -1,10 +1,9 @@
-using HostiliteEnMediterranee.Models.Dto;
+using HostiliteEnMediterranee.Server.Exceptions;
 
 namespace HostiliteEnMediterranee.Server.Entities;
 
 public class Game
 {
-    private readonly List<CoordinatesDto> _aiPossibleShots = [];
     public readonly Guid Id = Guid.NewGuid();
     public readonly List<Player> Players = [];
 
@@ -12,46 +11,59 @@ public class Game
     {
         Players.Add(player1);
         Players.Add(player2);
-
-        var possibleShots = new List<CoordinatesDto>();
-        for (var row = 0; row < Player.GridSize; row++)
-        {
-            for (var col = 0; col < Player.GridSize; col++)
-            {
-                possibleShots.Add(new CoordinatesDto(row, col));
-            }
-        }
-
-        _aiPossibleShots.AddRange(possibleShots.OrderBy(_ => Random.Shared.Next()).ToList());
     }
 
+    private int CurrentPlayerIndex { get; set; }
+    public GameStatus Status { get; private set; } = GameStatus.NotStarted;
+    public Player NextPlayer => Players[(CurrentPlayerIndex + 1) % 2];
+    public Player CurrentPlayer => Players[CurrentPlayerIndex];
     public Player? Winner { get; private set; }
 
-    private int CurrentPlayerIndex { get; set; } = 0;
-    public GameStatus Status { get; private set; } = GameStatus.NotStarted;
+    private void NextTurn()
+    {
+        CurrentPlayerIndex = (CurrentPlayerIndex + 1) % 2;
+    }
 
     public void Start()
     {
-        foreach (var player in Players)
-        {
-            player.GenerateRandomGrid(Ship.Ships);
-        }
+        if (Status != GameStatus.NotStarted) return;
+
+        foreach (var player in Players) player.GenerateRandomGrid(Ship.Ships);
 
         Status = GameStatus.InProgress;
     }
 
-    public Player GetCurrentPlayer()
+    public bool CurrentPlayerShot(int row, int col)
     {
-        return Players[CurrentPlayerIndex];
+        var hit = NextPlayer.ReceiveShot(row, col);
+        HandlePostShot();
+        return hit;
     }
 
-    public Player GetOpponentPlayer()
+    // ReSharper disable once InconsistentNaming
+    public bool AIShot()
     {
-        return Players[(CurrentPlayerIndex + 1) % 2];
+        if (CurrentPlayer is AIPlayer aiPlayer)
+        {
+            var shoot = aiPlayer.GetNextShot();
+            var hit = NextPlayer.ReceiveShot(shoot.Row, shoot.Column);
+            HandlePostShot();
+            return hit;
+        }
+
+        throw new NotAIPlayerException("Current player is not an AI player");
     }
 
-    public void NextTurn()
+    private void HandlePostShot()
     {
-        CurrentPlayerIndex = (CurrentPlayerIndex + 1) % 2;
+        if (NextPlayer.HasLost())
+        {
+            Status = GameStatus.Over;
+            Winner = CurrentPlayer;
+        }
+        else
+        {
+            NextTurn();
+        }
     }
 }
