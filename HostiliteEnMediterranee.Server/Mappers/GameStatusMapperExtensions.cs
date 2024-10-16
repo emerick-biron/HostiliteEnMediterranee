@@ -15,4 +15,15 @@ public static class GameStatusMapperExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(gameStatus), gameStatus, null)
         };
     }
+
+    public static Proto.GameStatusDto ToProto(this GameStatus gameStatus)
+    {
+        return gameStatus switch
+        {
+            GameStatus.NotStarted => Proto.GameStatusDto.NotStarted,
+            GameStatus.InProgress => Proto.GameStatusDto.InProgress,
+            GameStatus.Over => Proto.GameStatusDto.Over,
+            _ => throw new ArgumentOutOfRangeException(nameof(gameStatus), gameStatus, null)
+        };
+    }
 }

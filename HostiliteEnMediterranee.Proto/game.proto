@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+option csharp_namespace = "HostiliteEnMediterranee.Proto";
+
+package HostiliteEnMediterranee;
+
+service GameService {
+  rpc StartGame (Empty) returns (StartGameResponse);
+
+  rpc Shoot (ShootingRequest) returns (ShootingResponse);
+}
+
+enum GameStatusDto {
+  NotStarted = 0;
+  InProgress = 1;
+  Over = 2;
+}
+
+message CoordinatesDto {
+  int32 row = 1;
+  int32 column = 2;
+}
+
+message ShootingRequest {
+  CoordinatesDto shootCoordinates = 1;
+  string gameId = 2;
+}
+
+message StartGameResponse {
+  string gameId = 1;
+  repeated ShipDto playerShips = 2;
+}
+
+message ShootingResponse {
+  GameStatusDto gameStatus = 1;
+  string winnerName = 2;
+  bool hasHit = 3;
+  repeated CoordinatesDto opponentShoots = 4;
+}
+
+message ShipDto {
+  string model = 1;
+  repeated CoordinatesDto coordinates = 2;
+}
+
+message Empty {}
