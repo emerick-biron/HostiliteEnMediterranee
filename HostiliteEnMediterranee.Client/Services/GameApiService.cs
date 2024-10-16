@@ -9,6 +9,7 @@ namespace HostiliteEnMediterranee.Client.Services
     public class GameApiService
     {
         private readonly HttpClient _httpClient;
+        private readonly bool DebugMode = true;
 
         public GameApiService(HttpClient httpClient)
         {
@@ -17,22 +18,35 @@ namespace HostiliteEnMediterranee.Client.Services
 
         public async Task<StartGameResponse> StartGameAsync()
         {
+            if (DebugMode)
+            {
+                List<ShipDto> ships = new List<ShipDto>();
+                List<CoordinatesDto> coords = new List<CoordinatesDto>();
+                coords.Add(new CoordinatesDto(0, 0));
+                coords.Add(new CoordinatesDto(0, 1));
+                coords.Add(new CoordinatesDto(0, 2));
+                
+                ships.Add(new ShipDto('C', coords));
+                return new StartGameResponse(Guid.NewGuid(), ships);
+            }
             var response = await _httpClient.PostAsync("/api/games/start", null);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<StartGameResponse>();
-            //List<ShipDto> ships = new List<ShipDto>();
-            //List<CoordinatesDto> coords = new List<CoordinatesDto>();
-            //coords.Add(new CoordinatesDto(0, 0));
-            //coords.Add(new CoordinatesDto(0, 1));
-            //coords.Add(new CoordinatesDto(0, 2));
-            //
-            //ships.Add(new ShipDto('A', coords));
-            //return new StartGameResponse(Guid.NewGuid(), ships);
         }
 
-        public async Task<ShootingResponse> SendShootAsync(ShootingRequest shootingRequest)
+        public async Task<ShootingResponse> SendShootAsync(ShootingRequest shootingRequest, Guid gameId)
         {
-            var response = await _httpClient.PostAsJsonAsync("/api/game/shoot", shootingRequest);
+            if (DebugMode)
+            {
+                Random random = new Random();
+                bool hasHit = random.Next(0, 6) == 1;
+                List<CoordinatesDto> coords = new List<CoordinatesDto>();
+                if (!hasHit) {
+                    coords.Add(new CoordinatesDto(0, random.Next(0, 3)));
+                }
+                return new ShootingResponse(GameStatusDto.InProgress, "", hasHit, coords);
+            }
+            var response = await _httpClient.PostAsJsonAsync($"/api/games/{gameId}/shoot", shootingRequest);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<ShootingResponse>();
         }

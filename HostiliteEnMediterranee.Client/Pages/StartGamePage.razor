@@ -10,6 +10,7 @@
     {
         var startGameResponse = await GameApiService.StartGameAsync();
         GameState.UpdatePlayerShips(startGameResponse.PlayerShips);
+        GameState.GameId = startGameResponse.GameId;
         NavigationManager.NavigateTo("/game");
     }
 }

@@ -1,0 +1,19 @@
+﻿@keyframes explode {
+    from {
+        background-size: 100%;
+    }
+
+    to {
+        background-size: 150%;
+    }
+}
+
+@keyframes splash {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0.5;
+    }
+}
