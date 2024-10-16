@@ -1,10 +1,9 @@
-using HostiliteEnMediterranee.Models.Dto;
+using System.Text;
 
 namespace HostiliteEnMediterranee.Server.Entities;
 
 public class Game
 {
-    private readonly List<CoordinatesDto> _aiPossibleShots = [];
     public readonly Guid Id = Guid.NewGuid();
     public readonly List<Player> Players = [];
 
@@ -12,46 +11,79 @@ public class Game
     {
         Players.Add(player1);
         Players.Add(player2);
-
-        var possibleShots = new List<CoordinatesDto>();
-        for (var row = 0; row < Player.GridSize; row++)
-        {
-            for (var col = 0; col < Player.GridSize; col++)
-            {
-                possibleShots.Add(new CoordinatesDto(row, col));
-            }
-        }
-
-        _aiPossibleShots.AddRange(possibleShots.OrderBy(_ => Random.Shared.Next()).ToList());
     }
 
+    private int CurrentPlayerIndex { get; set; }
+    public GameStatus Status { get; private set; } = GameStatus.NotStarted;
+    public Player NextPlayer => Players[(CurrentPlayerIndex + 1) % 2];
+    public Player CurrentPlayer => Players[CurrentPlayerIndex];
     public Player? Winner { get; private set; }
 
-    private int CurrentPlayerIndex { get; set; } = 0;
-    public GameStatus Status { get; private set; } = GameStatus.NotStarted;
+    private void SwitchCurrentPlayer()
+    {
+        CurrentPlayerIndex = (CurrentPlayerIndex + 1) % 2;
+    }
 
     public void Start()
     {
-        foreach (var player in Players)
-        {
-            player.GenerateRandomGrid(Ship.Ships);
-        }
+        if (Status != GameStatus.NotStarted) return;
+
+        foreach (var player in Players) player.GenerateRandomGrid(Ship.Ships);
 
         Status = GameStatus.InProgress;
     }
 
-    public Player GetCurrentPlayer()
+    public bool CurrentPlayerShot(int row, int col)
     {
-        return Players[CurrentPlayerIndex];
+        var hit = NextPlayer.ReceiveShot(row, col);
+        HandlePostShot(hit);
+        return hit;
     }
 
-    public Player GetOpponentPlayer()
+    private void HandlePostShot(bool hit)
     {
-        return Players[(CurrentPlayerIndex + 1) % 2];
+        if (NextPlayer.HasLost())
+        {
+            Status = GameStatus.Over;
+            Winner = CurrentPlayer;
+        }
+        else if (!hit)
+        {
+            SwitchCurrentPlayer();
+        }
     }
 
-    public void NextTurn()
+    public override string ToString()
     {
-        CurrentPlayerIndex = (CurrentPlayerIndex + 1) % 2;
+        var gameInfo = new StringBuilder();
+        gameInfo.AppendLine($"Game ID: {Id}");
+        gameInfo.AppendLine($"Status: {Status}");
+        gameInfo.AppendLine($"Current Player: {CurrentPlayer.Name}");
+
+        if (Winner != null)
+        {
+            gameInfo.AppendLine($"Winner: {Winner.Name}");
+        }
+        else
+        {
+            gameInfo.AppendLine("Players:");
+        }
+
+        foreach (var player in Players)
+        {
+            gameInfo.AppendLine($"Player: {player.Name}");
+            gameInfo.AppendLine("Grid:");
+            for (var row = 0; row < Player.GridSize; row++)
+            {
+                for (var col = 0; col < Player.GridSize; col++)
+                {
+                    gameInfo.Append(player.Grid[row, col] == '\0' ? ". " : $"{player.Grid[row, col]} ");
+                }
+
+                gameInfo.AppendLine();
+            }
+        }
+
+        return gameInfo.ToString();
     }
 }

@@ -47,20 +47,32 @@ public class Player
     {
         if (direction == Direction.Horizontal)
         {
-            if (col + size > GridSize) return false;
+            if (col + size > GridSize)
+            {
+                return false;
+            }
 
             for (var i = 0; i < size; i++)
             {
-                if (Grid[row, col + i] != '\0') return false;
+                if (Grid[row, col + i] != '\0')
+                {
+                    return false;
+                }
             }
         }
         else
         {
-            if (row + size > GridSize) return false;
+            if (row + size > GridSize)
+            {
+                return false;
+            }
 
             for (var i = 0; i < size; i++)
             {
-                if (Grid[row + i, col] != '\0') return false;
+                if (Grid[row + i, col] != '\0')
+                {
+                    return false;
+                }
             }
         }
 
@@ -92,14 +104,17 @@ public class Player
             for (var col = 0; col < GridSize; col++)
             {
                 var cell = Grid[row, col];
-                if (cell != '\0' && cell != 'O' && cell != 'X') return false;
+                if (cell != '\0' && cell != 'O' && cell != 'X')
+                {
+                    return false;
+                }
             }
         }
 
         return true;
     }
 
-    public bool Shoot(int row, int col)
+    public bool ReceiveShot(int row, int col)
     {
         switch (Grid[row, col])
         {

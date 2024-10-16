@@ -1,6 +1,5 @@
-using HostiliteEnMediterranee.Models.Dto;
-using HostiliteEnMediterranee.Models.Requests;
-using HostiliteEnMediterranee.Models.Responses;
+using Grpc.Core;
+using HostiliteEnMediterranee.Proto;
 using HostiliteEnMediterranee.Server.Entities;
 using HostiliteEnMediterranee.Server.Exceptions;
 using HostiliteEnMediterranee.Server.Mappers;
@@ -8,9 +7,11 @@ using HostiliteEnMediterranee.Server.Repositories;
 
 namespace HostiliteEnMediterranee.Server.Services;
 
-public class GameService(GameRepository gameRepository, ILogger<GameService> logger)
+// ReSharper disable once InconsistentNaming
+public class GameServiceGRPC(GameRepository gameRepository, ILogger<GameService> logger)
+    : Proto.GameService.GameServiceBase
 {
-    public StartGameResponse StartGame()
+    public override Task<StartGameResponse> StartGame(Empty request, ServerCallContext context)
     {
         var player = new Player("Player");
         var ia = new AIPlayer("IA");
@@ -26,15 +27,24 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
                 var cell = player.Grid[row, col];
                 if (cell != '\0')
                 {
-                    var ship = playerShips.FirstOrDefault(s => s.Model == cell);
+                    var ship = playerShips.FirstOrDefault(s => s.Model[0] == cell);
+                    var coordinates = new CoordinatesDto
+                    {
+                        Row = row,
+                        Column = col
+                    };
                     if (ship == null)
                     {
-                        ship = new ShipDto(cell, [new CoordinatesDto(row, col)]);
+                        ship = new ShipDto
+                        {
+                            Model = cell.ToString(),
+                            Coordinates = { coordinates }
+                        };
                         playerShips.Add(ship);
                     }
                     else
                     {
-                        ship.Coordinates.Add(new CoordinatesDto(row, col));
+                        ship.Coordinates.Add(coordinates);
                     }
                 }
             }
@@ -42,19 +52,21 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
 
         logger.LogInformation("Game started:\n{GameInfo}", game.ToString());
 
-        return new StartGameResponse(
-            game.Id,
-            playerShips
-        );
+        return Task.FromResult(new StartGameResponse
+        {
+            GameId = game.Id.ToString(),
+            PlayerShips = { playerShips }
+        });
     }
 
-    public ShootingResponse Shoot(Guid gameId, ShootingRequest shootingRequest)
+    public override Task<ShootingResponse> Shoot(ShootingRequest request, ServerCallContext context)
     {
+        var gameId = Guid.Parse(request.GameId);
         var game = gameRepository.FindById(gameId) ?? throw new GameNotFoundException("Game not found");
 
         logger.LogInformation("Shooting attempt by {PlayerName} in game {GameId}", game.CurrentPlayer.Name, gameId);
 
-        var shootCoordinates = shootingRequest.ShootCoordinates;
+        var shootCoordinates = request.ShootCoordinates;
         var playerHit = game.CurrentPlayerShot(shootCoordinates.Row, shootCoordinates.Column);
 
         logger.LogInformation("Shot at ({Row}, {Col}) was a {Result}", shootCoordinates.Row, shootCoordinates.Column,
@@ -63,12 +75,13 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
         if (playerHit)
         {
             logger.LogInformation("Current game status:\n{GameInfo}", game.ToString());
-            return new ShootingResponse(
-                GameStatus: game.Status.ToDto(),
-                WinnerName: game.Winner?.Name,
-                HasHit: playerHit,
-                OpponentShoots: []
-            );
+            return Task.FromResult(new ShootingResponse
+            {
+                GameStatus = game.Status.ToProto(),
+                WinnerName = game.Winner?.Name ?? string.Empty,
+                HasHit = playerHit,
+                OpponentShoots = { }
+            });
         }
 
         var opponentShots = new List<CoordinatesDto>();
@@ -80,18 +93,23 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
             {
                 var shot = aiPlayer.GetNextShot();
                 aiHit = game.CurrentPlayerShot(shot.Row, shot.Column);
-                opponentShots.Add(new CoordinatesDto(shot.Row, shot.Column));
+                opponentShots.Add(new CoordinatesDto
+                {
+                    Row = shot.Row,
+                    Column = shot.Column
+                });
                 logger.LogInformation("AI shot at ({Row}, {Col}) was a {Result}", shot.Row, shot.Column,
                     aiHit ? "hit" : "miss");
             } while (aiHit && game.Status != GameStatus.Over);
         }
 
         logger.LogInformation("Current game status:\n{GameInfo}", game.ToString());
-        return new ShootingResponse(
-            GameStatus: game.Status.ToDto(),
-            WinnerName: game.Winner?.Name,
-            HasHit: playerHit,
-            OpponentShoots: opponentShots
-        );
+        return Task.FromResult(new ShootingResponse
+        {
+            GameStatus = game.Status.ToProto(),
+            WinnerName = game.Winner?.Name,
+            HasHit = playerHit,
+            OpponentShoots = { opponentShots }
+        });
     }
 }
