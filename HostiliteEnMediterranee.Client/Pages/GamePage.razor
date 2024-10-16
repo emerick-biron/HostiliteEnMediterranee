@@ -12,12 +12,56 @@
                         var cell = GameState.OpponentGrid[row, col];
                         var c_row = row;
                         var c_col = col;
-                        <span class="cell opponent @(cell == true ? "hit" : cell == false ? "miss" : "sea")"
+                        <span class="cell opponent @(cell == false ? "miss" : cell == true && !GameState.CellIsSunk(row, col) ? "hit" : "sea")"
                               @onclick="() => CellClicked(c_row, c_col)">
                         </span>
                     }
                 </div>
             }
+        </div>
+        <div class="boats">
+            @foreach (var ship in GameState.OpponentSunkShips)
+            {
+                var topPosition = ship.Coordinates[0].Row * (100 / GameState.GridSize) + 1;
+                if (ship.Orientation == "horizontal")
+                {
+                    topPosition += (100 / GameState.GridSize) - 1;
+                }
+                var leftPosition = ship.Coordinates[0].Column * (100 / GameState.GridSize) + 1;
+                var shipWidth = (100 / GameState.GridSize) - 2;
+                var shipHeight = ship.Size * (100 / GameState.GridSize) - 2;
+
+
+                <div class="ship @(ship.Orientation)"
+                     style="
+                    position: absolute;
+                    top: @(topPosition)%;
+                    left: @(leftPosition)%;
+                    width: @(shipWidth)%;
+                    height: @(shipHeight)%;
+                    transform: @(ship.Orientation == "horizontal" ? "rotate(-90deg)" : "none");
+                    transform-origin: top left;
+                    filter: blur(3px) saturate(0.5);
+                             ">
+                    <img src="assets/ship/ship-@(ship.Model).png" alt="Ship" />
+                </div>
+
+                foreach (var coord in ship.Coordinates)
+                {
+                    var top = coord.Row * (100 / GameState.GridSize) + 1;
+                    var left = coord.Column * (100 / GameState.GridSize) + 1;
+                    var width = (100 / GameState.GridSize) - 2;
+                    var height = (100 / GameState.GridSize) - 2;
+                    <img src="assets/bubbles.gif" style="position: absolute;
+                                                    top: @(top)%;
+                                                    left: @(left)%;
+                                                    width: @(width)%;
+                                                    height: @(height)%;
+                                                    z-index: 10;" />
+                }
+           
+            }
+
         </div>
     </div>
     <div class="player-grid-container">
@@ -34,15 +78,15 @@
                 </div>
             }
         </div>
-        <div class="player-boats">
-            @foreach (var ship in GameState.ShipList)
+        <div class="boats">
+            @foreach (var ship in GameState.PlayerShips)
             {
-                var topPosition = ship.StartCoordinate.Row * (100 / GameState.GridSize) + 1;
+                var topPosition = ship.Coordinates[0].Row * (100 / GameState.GridSize) + 1;
                 if (ship.Orientation == "horizontal")
                 {
                     topPosition += (100 / GameState.GridSize) - 1;
                 }
-                var leftPosition = ship.StartCoordinate.Column * (100 / GameState.GridSize) + 1;
+                var leftPosition = ship.Coordinates[0].Column * (100 / GameState.GridSize) + 1;
                 var shipWidth = (100 / GameState.GridSize) - 2;
                 var shipHeight = ship.Size * (100 / GameState.GridSize) - 2;
 
@@ -81,42 +125,18 @@
     
         </div>
     </div>
-    @(GameState.GameStatus == Models.Dto.GameStatusDto.Over ? "<h1>Winner : @(GameState.Winner)</h1>" : "")
+    <h1>
+        @(GameState.GameStatus == GameStatusDto.Over ? GameState.PlayerWin ? "You win" : "You Lose" : "")
+    </h1>
 
 </div>
 
 @code {
-    [Inject] private GameApiService GameApiService { get; set; }
     [Inject] private GameState GameState { get; set; }
-    [Inject] private GameService.GameServiceClient GameGrpcClient { get; set; }
 
     private async void CellClicked(int row, int col)
     {
-        if (GameState.OpponentGrid[row, col] != null)
-        {
-            return;
-        }
-        if (GameState.UseGRPC)
-        {
-            var coords = new Proto.CoordinatesDto { Row = row, Column = col };
-            var shootingRequest = new Proto.ShootingRequest { ShootCoordinates = coords, GameId = GameState.GameId.ToString() };
-            var sendShootResponse = await GameGrpcClient.ShootAsync(shootingRequest);
-
-        }
-        else
-        {
-            var sendShootResponse = await GameApiService.SendShootAsync(new Models.Requests.ShootingRequest(new Models.Dto.CoordinatesDto(row, col)), GameState.GameId);
-            GameState.UpdateOpponentGrid(row, col, sendShootResponse.HasHit);
-            foreach (Models.Dto.CoordinatesDto opponentShoot in sendShootResponse.OpponentShoots)
-            {
-                GameState.UpdatePlayerGrid(opponentShoot.Row, opponentShoot.Column);
-            }
-            if (sendShootResponse.GameStatus == Models.Dto.GameStatusDto.Over)
-            {
-                GameState.Winner = sendShootResponse.WinnerName;
-            }
-        }
-        
+        await GameState.SendShootAsync(row, col);
         StateHasChanged();
     }
 }
@@ -136,7 +156,6 @@
         grid-template-rows: repeat(@(GameState.GridSize), 1fr);
         background-image: url('assets/sea.jpg');
         background-size: cover;
-        gap: 2px;
         position: relative;
         width: 100%;
         height: 100%;
@@ -155,7 +174,7 @@
         margin-bottom: 20px;
     }
 
-    .player-boats {
+    .boats {
         top: 0;
         left: 0;
         width: 100%;
@@ -168,7 +187,6 @@
         display: flex;
         background-size: cover;
         background-position: center;
-        border: solid 1px rgba(255, 255, 255, 0.5);
         z-index: 5;
     }
 
