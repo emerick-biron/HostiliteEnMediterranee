@@ -14,6 +14,8 @@ namespace HostiliteEnMediterranee.Client.Services
         public string Winner { get; set; }
 
         public List<Ship> ShipList { get; private set; }
+
+        public bool UseGRPC { get; private set; } = true;
         public GameState(int gridSize = 10)
         {
             this.GridSize = gridSize;
@@ -59,7 +61,19 @@ namespace HostiliteEnMediterranee.Client.Services
         {
             if (IsWithinBounds(row, col))
             {
-                PlayerGrid[row, col] = PlayerGrid[row, col] == '/' ? 'O' : 'X';
+                if (PlayerGrid[row, col] == '/')
+                {
+                    PlayerGrid[row, col] = 'O';
+                    return;
+                }
+                char shipModel = PlayerGrid[row, col];
+                Ship ship = ShipList.Find(s => s.Model == shipModel);
+                ship.HitCoordinates.Add(new CoordinatesDto(row, col));
+                if (ship.HitCoordinates.Count == ship.Size)
+                {
+                    ship.IsSinked = true;
+                }
+                PlayerGrid[row, col] = 'X';
             }
         }
 

@@ -46,14 +46,6 @@
                 var shipWidth = (100 / GameState.GridSize) - 2;
                 var shipHeight = ship.Size * (100 / GameState.GridSize) - 2;
 
-                List<CoordinatesDto> coords = new List<CoordinatesDto>();
-                bool isSink = false;
-                foreach (var coord in ship.Coordinates) if (GameState.PlayerGrid[coord.Row, coord.Column] == 'X') coords.Add(coord);
-
-                if (coords.Count == ship.Coordinates.Count)
-                {
-                    isSink = true;
-                }
 
                 <div class="ship @(ship.Orientation)"
                      style="
@@ -64,20 +56,20 @@
                     height: @(shipHeight)%;
                     transform: @(ship.Orientation == "horizontal" ? "rotate(-90deg)" : "none");
                     transform-origin: top left;
-                    filter: @(isSink? "blur(3px) saturate(0,5)" :"");
+                    filter: @(ship.IsSinked? "blur(3px) saturate(0.5)" :"");
                          ">
                     <img src="assets/ship/ship-@(ship.Model).png" alt="Ship" />
                 </div>
 
-                if (coords.Count != 0)
+                if (ship.HitCoordinates.Count != 0)
                 {
-                    foreach (var coord in coords)
+                    foreach (var coord in ship.HitCoordinates)
                     {
                         var top = coord.Row * (100 / GameState.GridSize) + 1;
                         var left = coord.Column * (100 / GameState.GridSize) + 1;
                         var width = (100 / GameState.GridSize) - 2;
                         var height = (100 / GameState.GridSize) - 2;
-                        <img src=@(isSink ? "assets/bubbles.gif" : "assets/fire.gif") style="position: absolute;
+                        <img src=@(ship.IsSinked ? "assets/bubbles.gif" : "assets/fire.gif") style="position: absolute;
                                                         top: @(top)%;
                                                         left: @(left)%;
                                                         width: @(width)%;
@@ -89,13 +81,14 @@
     
         </div>
     </div>
-    @(GameState.GameStatus == GameStatusDto.Over ? "<h1>Winner : @(GameState.Winner)</h1>" : "")
+    @(GameState.GameStatus == Models.Dto.GameStatusDto.Over ? "<h1>Winner : @(GameState.Winner)</h1>" : "")
 
 </div>
 
 @code {
     [Inject] private GameApiService GameApiService { get; set; }
     [Inject] private GameState GameState { get; set; }
+    [Inject] private GameService.GameServiceClient GameGrpcClient { get; set; }
 
     private async void CellClicked(int row, int col)
     {
@@ -103,16 +96,27 @@
         {
             return;
         }
-        var sendShootResponse = await GameApiService.SendShootAsync(new ShootingRequest(new CoordinatesDto(row, col)), GameState.GameId);
-        GameState.UpdateOpponentGrid(row, col, sendShootResponse.HasHit);
-        foreach (CoordinatesDto opponentShoot in sendShootResponse.OpponentShoots)
+        if (GameState.UseGRPC)
         {
-            GameState.UpdatePlayerGrid(opponentShoot.Row, opponentShoot.Column);
+            var coords = new Proto.CoordinatesDto { Row = row, Column = col };
+            var shootingRequest = new Proto.ShootingRequest { ShootCoordinates = coords, GameId = GameState.GameId.ToString() };
+            var sendShootResponse = await GameGrpcClient.ShootAsync(shootingRequest);
+
         }
-        if (sendShootResponse.GameStatus == GameStatusDto.Over)
+        else
         {
-            GameState.Winner = sendShootResponse.WinnerName;
+            var sendShootResponse = await GameApiService.SendShootAsync(new Models.Requests.ShootingRequest(new Models.Dto.CoordinatesDto(row, col)), GameState.GameId);
+            GameState.UpdateOpponentGrid(row, col, sendShootResponse.HasHit);
+            foreach (Models.Dto.CoordinatesDto opponentShoot in sendShootResponse.OpponentShoots)
+            {
+                GameState.UpdatePlayerGrid(opponentShoot.Row, opponentShoot.Column);
+            }
+            if (sendShootResponse.GameStatus == Models.Dto.GameStatusDto.Over)
+            {
+                GameState.Winner = sendShootResponse.WinnerName;
+            }
         }
+        
         StateHasChanged();
     }
 }

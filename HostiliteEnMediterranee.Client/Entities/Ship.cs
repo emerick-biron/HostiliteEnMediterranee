@@ -10,11 +10,17 @@ namespace HostiliteEnMediterranee.Client.Entities
         public string Orientation { get; set; }
         public CoordinatesDto StartCoordinate { get; set; }
 
+        public bool IsSinked { get; set; }
+
+        public List<CoordinatesDto> HitCoordinates { get; set; }
+
         public Ship(char model, List<CoordinatesDto> coordinates)
         {
             Model = model;
             Coordinates = coordinates;
             Size = coordinates.Count;
+            HitCoordinates = new List<CoordinatesDto>();
+            IsSinked = false;
             Orientation = GetOrientation();
             StartCoordinate = GetStartCoordinate();
             Console.WriteLine(Model);

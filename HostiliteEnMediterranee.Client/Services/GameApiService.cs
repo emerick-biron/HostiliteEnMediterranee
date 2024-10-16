@@ -23,8 +23,8 @@ namespace HostiliteEnMediterranee.Client.Services
                 List<ShipDto> ships = new List<ShipDto>();
                 List<CoordinatesDto> coords = new List<CoordinatesDto>();
                 coords.Add(new CoordinatesDto(0, 0));
-                coords.Add(new CoordinatesDto(0, 1));
-                coords.Add(new CoordinatesDto(0, 2));
+                coords.Add(new CoordinatesDto(1, 0));
+                coords.Add(new CoordinatesDto(2, 0));
                 
                 ships.Add(new ShipDto('C', coords));
                 return new StartGameResponse(Guid.NewGuid(), ships);
@@ -42,7 +42,7 @@ namespace HostiliteEnMediterranee.Client.Services
                 bool hasHit = random.Next(0, 6) == 1;
                 List<CoordinatesDto> coords = new List<CoordinatesDto>();
                 if (!hasHit) {
-                    coords.Add(new CoordinatesDto(0, random.Next(0, 3)));
+                    coords.Add(new CoordinatesDto(random.Next(0, 3), 0));
                 }
                 return new ShootingResponse(GameStatusDto.InProgress, "", hasHit, coords);
             }

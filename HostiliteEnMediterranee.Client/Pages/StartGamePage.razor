@@ -4,13 +4,33 @@
 @code {
     [Inject] private GameApiService GameApiService { get; set; }
     [Inject] private NavigationManager NavigationManager { get; set; }
+    [Inject] private GameService.GameServiceClient GameGrpcClient { get; set; }
     [Inject] private GameState GameState { get; set; }
 
     private async Task StartNewGameAsync()
     {
-        var startGameResponse = await GameApiService.StartGameAsync();
-        GameState.UpdatePlayerShips(startGameResponse.PlayerShips);
-        GameState.GameId = startGameResponse.GameId;
+        if (GameState.UseGRPC)
+        {
+            var startGameResponse = await GameGrpcClient.StartGameAsync(new Empty());
+            var ships = new List<Models.Dto.ShipDto>();
+            foreach (var ship in startGameResponse.PlayerShips)
+            {
+                var coords = new List<Models.Dto.CoordinatesDto>();
+                foreach (var coord in ship.Coordinates)
+                {
+                    coords.Add(new Models.Dto.CoordinatesDto(coord.Row, coord.Column));
+                }
+                ships.Add(new Models.Dto.ShipDto(ship.Model[0], coords));
+            }
+            GameState.UpdatePlayerShips(ships);
+            GameState.GameId = Guid.Parse(startGameResponse.GameId);
+        }
+        else
+        {
+            var startGameResponse = await GameApiService.StartGameAsync();
+            GameState.UpdatePlayerShips(startGameResponse.PlayerShips);
+            GameState.GameId = startGameResponse.GameId;
+        }
         NavigationManager.NavigateTo("/game");
     }
 }
