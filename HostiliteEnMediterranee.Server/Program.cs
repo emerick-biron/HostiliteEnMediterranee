@@ -1,3 +1,4 @@
+using HostiliteEnMediterranee.Models.Requests;
 using HostiliteEnMediterranee.Server.Repositories;
 using HostiliteEnMediterranee.Server.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +35,16 @@ app.Use(async (context, next) =>
 app.MapPost("/games/start", ([FromServices] GameService gameService) =>
 {
     var response = gameService.StartGame();
+    return Results.Ok(response);
+});
+
+app.MapPost("/games/{gameId:guid}/shoot", (
+    [FromServices] GameService gameService,
+    [FromRoute] Guid gameId,
+    [FromBody] ShootingRequest request
+) =>
+{
+    var response = gameService.Shoot(gameId, request);
     return Results.Ok(response);
 });
 

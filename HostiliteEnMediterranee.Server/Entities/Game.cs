@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace HostiliteEnMediterranee.Server.Entities;
 
 public class Game
@@ -49,5 +51,39 @@ public class Game
         {
             SwitchCurrentPlayer();
         }
+    }
+
+    public override string ToString()
+    {
+        var gameInfo = new StringBuilder();
+        gameInfo.AppendLine($"Game ID: {Id}");
+        gameInfo.AppendLine($"Status: {Status}");
+        gameInfo.AppendLine($"Current Player: {CurrentPlayer.Name}");
+
+        if (Winner != null)
+        {
+            gameInfo.AppendLine($"Winner: {Winner.Name}");
+        }
+        else
+        {
+            gameInfo.AppendLine("Players:");
+        }
+
+        foreach (var player in Players)
+        {
+            gameInfo.AppendLine($"Player: {player.Name}");
+            gameInfo.AppendLine("Grid:");
+            for (var row = 0; row < Player.GridSize; row++)
+            {
+                for (var col = 0; col < Player.GridSize; col++)
+                {
+                    gameInfo.Append(player.Grid[row, col] == '\0' ? ". " : $"{player.Grid[row, col]} ");
+                }
+
+                gameInfo.AppendLine();
+            }
+        }
+
+        return gameInfo.ToString();
     }
 }
