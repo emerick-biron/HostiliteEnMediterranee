@@ -2,20 +2,20 @@ namespace HostiliteEnMediterranee.Server.Entities;
 
 public class Ship(char type, int size)
 {
-    public static readonly List<Ship> Ships =
-    [
-        new('A', 5), // carrier
-        new('B', 4), // battleship
-        new('C', 3), // cruiser
-        new('D', 3), // submarine
-        new('E', 2) // destroyer
-    ];
-
     public readonly List<Coordinates> Coordinates = [];
 
     public char Type { get; } = type;
     public int Size { get; } = size;
     public bool IsPlaced => Coordinates.Count != 0;
+
+    public static List<Ship> GetDefaultShips() =>
+    [
+        new Ship('A', 5), // Carrier
+        new Ship('B', 4), // Battleship
+        new Ship('C', 3), // Cruiser
+        new Ship('D', 3), // Submarine
+        new Ship('E', 2)
+    ];
 
     public void Place(List<Coordinates> coordinates)
     {

@@ -6,6 +6,7 @@ public class Game
 {
     public readonly Guid Id = Guid.NewGuid();
     public readonly List<Player> Players = [];
+    private readonly Stack<ShotRecord> ShotHistory = new();
 
     public Game(Player player1, Player player2)
     {
@@ -35,21 +36,18 @@ public class Game
     public ShotResult CurrentPlayerShot(int row, int col)
     {
         var shotResult = NextPlayer.ReceiveShot(row, col);
-        HandlePostShot(shotResult.HasHit);
-        return shotResult;
-    }
-
-    private void HandlePostShot(bool hit)
-    {
+        ShotHistory.Push(new ShotRecord(CurrentPlayer, new Coordinates(row, col), shotResult));
         if (NextPlayer.HasLost())
         {
             Status = GameStatus.Over;
             Winner = CurrentPlayer;
         }
-        else if (!hit)
+        else if (shotResult.HitShip == null)
         {
             SwitchCurrentPlayer();
         }
+
+        return shotResult;
     }
 
     public override string ToString()

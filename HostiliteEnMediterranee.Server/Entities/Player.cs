@@ -96,7 +96,7 @@ public class Player
             for (var i = 0; i < ship.Size; i++)
             {
                 Grid[row + i, col] = ship.Type;
-                shipCoordinates.Add(new Coordinates(row, col + i));
+                shipCoordinates.Add(new Coordinates(row + i, col));
             }
         }
 
@@ -121,6 +121,17 @@ public class Player
         return true;
     }
 
+    private Ship GetShip(char type)
+    {
+        var ship = Ships.FirstOrDefault(s => s.Type == type);
+        if (ship == null)
+        {
+            throw new InvalidOperationException($"No ship found for type {type}");
+        }
+
+        return ship;
+    }
+
     public ShotResult ReceiveShot(int row, int col)
     {
         switch (Grid[row, col])
@@ -130,18 +141,13 @@ public class Player
                 throw new CellAlreadyShotException($"Cell[{row}, {col}] has already been shot");
             case '\0':
                 Grid[row, col] = 'O';
-                return new ShotResult(true, null);
+                return new ShotResult(null, false);
             default:
                 var shipType = Grid[row, col];
                 Grid[row, col] = 'X';
-                var ship = Ships.FirstOrDefault(s => s.Type == shipType);
-                if (ship == null)
-                {
-                    throw new InvalidOperationException($"No ship found for type {shipType}");
-                }
-
+                var ship = GetShip(shipType);
                 var isSunk = ship.Coordinates.All(coord => Grid[coord.Row, coord.Column] == 'X');
-                return new ShotResult(true, isSunk ? ship : null);
+                return new ShotResult(ship, isSunk);
         }
     }
 }

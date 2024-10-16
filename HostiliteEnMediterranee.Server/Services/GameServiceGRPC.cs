@@ -15,8 +15,8 @@ public class GameServiceGRPC(GameRepository gameRepository, ILogger<GameService>
     {
         var player = new Player("Player");
         var ia = new AIPlayer("IA");
-        player.GenerateRandomGrid(Ship.Ships);
-        ia.GenerateRandomGrid(Ship.Ships);
+        player.GenerateRandomGrid(Ship.GetDefaultShips());
+        ia.GenerateRandomGrid(Ship.GetDefaultShips());
         var game = new Game(player, ia);
         gameRepository.Save(game);
         game.Start();
@@ -72,16 +72,16 @@ public class GameServiceGRPC(GameRepository gameRepository, ILogger<GameService>
         var shotResult = game.CurrentPlayerShot(shootCoordinates.Row, shootCoordinates.Column);
 
         logger.LogInformation("Shot at ({Row}, {Col}) was a {Result}", shootCoordinates.Row, shootCoordinates.Column,
-            shotResult.HasHit ? "hit" : "miss");
+            shotResult.HitShip != null ? "hit" : "miss");
 
-        if (shotResult.HasHit)
+        if (shotResult.HitShip != null)
         {
             logger.LogInformation("Current game status:\n{GameInfo}", game.ToString());
             return Task.FromResult(new ShootingResponse
             {
                 GameStatus = game.Status.ToProto(),
                 WinnerName = game.Winner?.Name ?? string.Empty,
-                HasHit = shotResult.HasHit,
+                HasHit = shotResult.HitShip != null,
                 OpponentShoots = { }
             });
         }
@@ -101,8 +101,8 @@ public class GameServiceGRPC(GameRepository gameRepository, ILogger<GameService>
                     Column = shot.Column
                 });
                 logger.LogInformation("AI shot at ({Row}, {Col}) was a {Result}", shot.Row, shot.Column,
-                    aiShotResult.HasHit ? "hit" : "miss");
-            } while (aiShotResult.HasHit && game.Status != GameStatus.Over);
+                    aiShotResult.HitShip != null ? "hit" : "miss");
+            } while (aiShotResult.HitShip != null && game.Status != GameStatus.Over);
         }
 
         logger.LogInformation("Current game status:\n{GameInfo}", game.ToString());
@@ -110,7 +110,7 @@ public class GameServiceGRPC(GameRepository gameRepository, ILogger<GameService>
         {
             GameStatus = game.Status.ToProto(),
             WinnerName = game.Winner?.Name,
-            HasHit = shotResult.HasHit,
+            HasHit = shotResult.HitShip != null,
             OpponentShoots = { opponentShots }
         });
     }

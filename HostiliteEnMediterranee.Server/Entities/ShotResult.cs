@@ -1,3 +1,3 @@
 namespace HostiliteEnMediterranee.Server.Entities;
 
-public record ShotResult(bool HasHit, Ship? SunkShip);
+public record ShotResult(Ship? HitShip, bool HasSunk);

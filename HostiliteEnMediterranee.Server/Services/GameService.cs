@@ -14,8 +14,8 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
     {
         var player = new Player("Player");
         var ia = new AIPlayer("IA");
-        player.GenerateRandomGrid(Ship.Ships);
-        ia.GenerateRandomGrid(Ship.Ships);
+        player.GenerateRandomGrid(Ship.GetDefaultShips());
+        ia.GenerateRandomGrid(Ship.GetDefaultShips());
         var game = new Game(player, ia);
         gameRepository.Save(game);
         game.Start();
@@ -60,18 +60,18 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
         var playerShotResult = game.CurrentPlayerShot(shootCoordinates.Row, shootCoordinates.Column);
 
         logger.LogInformation("Shot at ({Row}, {Col}) was a {Result}", shootCoordinates.Row, shootCoordinates.Column,
-            playerShotResult.HasHit ? "hit" : "miss");
+            playerShotResult.HitShip != null ? "hit" : "miss");
 
-        if (playerShotResult.HasHit)
+        if (playerShotResult.HitShip != null)
         {
             logger.LogInformation("Current game status:\n{GameInfo}", game.ToString());
 
             return new ShootingResponse(
                 GameStatus: game.Status.ToDto(),
                 WinnerName: game.Winner?.Name,
-                HasHit: playerShotResult.HasHit,
+                HasHit: playerShotResult.HitShip != null,
                 OpponentShoots: [],
-                OpponentShipSunk: playerShotResult.SunkShip?.ToDto()
+                OpponentShipSunk: playerShotResult.HasSunk ? playerShotResult.HitShip?.ToDto() : null
             );
         }
 
@@ -86,15 +86,15 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
                 aiShotResult = game.CurrentPlayerShot(shot.Row, shot.Column);
                 opponentShots.Add(new CoordinatesDto(shot.Row, shot.Column));
                 logger.LogInformation("AI shot at ({Row}, {Col}) was a {Result}", shot.Row, shot.Column,
-                    aiShotResult.HasHit ? "hit" : "miss");
-            } while (aiShotResult.HasHit && game.Status != GameStatus.Over);
+                    aiShotResult.HitShip != null ? "hit" : "miss");
+            } while (aiShotResult.HitShip != null && game.Status != GameStatus.Over);
         }
 
         logger.LogInformation("Current game status:\n{GameInfo}", game.ToString());
         return new ShootingResponse(
             GameStatus: game.Status.ToDto(),
             WinnerName: game.Winner?.Name,
-            HasHit: playerShotResult.HasHit,
+            HasHit: playerShotResult.HitShip != null,
             OpponentShoots: opponentShots,
             OpponentShipSunk: null
         );
