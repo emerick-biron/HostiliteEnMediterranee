@@ -11,6 +11,15 @@ public class Ship(char type, int size)
         new('E', 2) // destroyer
     ];
 
+    public readonly List<Coordinates> Coordinates = [];
+
     public char Type { get; } = type;
     public int Size { get; } = size;
+    public bool IsPlaced => Coordinates.Count != 0;
+
+    public void Place(List<Coordinates> coordinates)
+    {
+        Coordinates.Clear();
+        Coordinates.AddRange(coordinates);
+    }
 }

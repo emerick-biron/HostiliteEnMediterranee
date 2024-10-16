@@ -5,6 +5,7 @@ namespace HostiliteEnMediterranee.Server.Entities;
 public class Player
 {
     public const int GridSize = 10;
+    public readonly List<Ship> Ships = [];
 
     public Player(string name)
     {
@@ -31,8 +32,8 @@ public class Player
             do
             {
                 var direction = (Direction)Random.Shared.Next(2);
-                var row = Random.Shared.Next(10);
-                var col = Random.Shared.Next(10);
+                var row = Random.Shared.Next(GridSize);
+                var col = Random.Shared.Next(GridSize);
 
                 if (CanPlaceShip(row, col, ship.Size, direction))
                 {
@@ -81,11 +82,13 @@ public class Player
 
     private void PlaceShip(int row, int col, Ship ship, Direction direction)
     {
+        List<Coordinates> shipCoordinates = [];
         if (direction == Direction.Horizontal)
         {
             for (var i = 0; i < ship.Size; i++)
             {
                 Grid[row, col + i] = ship.Type;
+                shipCoordinates.Add(new Coordinates(row, col + i));
             }
         }
         else
@@ -93,8 +96,12 @@ public class Player
             for (var i = 0; i < ship.Size; i++)
             {
                 Grid[row + i, col] = ship.Type;
+                shipCoordinates.Add(new Coordinates(row, col + i));
             }
         }
+
+        ship.Place(shipCoordinates);
+        Ships.Add(ship);
     }
 
     public bool HasLost()
@@ -114,7 +121,7 @@ public class Player
         return true;
     }
 
-    public bool ReceiveShot(int row, int col)
+    public ShotResult ReceiveShot(int row, int col)
     {
         switch (Grid[row, col])
         {
@@ -123,10 +130,18 @@ public class Player
                 throw new CellAlreadyShotException($"Cell[{row}, {col}] has already been shot");
             case '\0':
                 Grid[row, col] = 'O';
-                return false;
+                return new ShotResult(true, null);
             default:
+                var shipType = Grid[row, col];
                 Grid[row, col] = 'X';
-                return true;
+                var ship = Ships.FirstOrDefault(s => s.Type == shipType);
+                if (ship == null)
+                {
+                    throw new InvalidOperationException($"No ship found for type {shipType}");
+                }
+
+                var isSunk = ship.Coordinates.All(coord => Grid[coord.Row, coord.Column] == 'X');
+                return new ShotResult(true, isSunk ? ship : null);
         }
     }
 }

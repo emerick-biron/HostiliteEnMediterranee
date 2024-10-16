@@ -9,7 +9,7 @@ public class AIPlayer : Player
 
     public AIPlayer(string name) : base(name)
     {
-        _possibleShots = new List<Coordinates>();
+        _possibleShots = [];
         for (var row = 0; row < GridSize; row++)
         for (var col = 0; col < GridSize; col++)
             _possibleShots.Add(new Coordinates(row, col));

@@ -28,16 +28,15 @@ public class Game
     {
         if (Status != GameStatus.NotStarted) return;
 
-        foreach (var player in Players) player.GenerateRandomGrid(Ship.Ships);
-
+        // todo check players' ships
         Status = GameStatus.InProgress;
     }
 
-    public bool CurrentPlayerShot(int row, int col)
+    public ShotResult CurrentPlayerShot(int row, int col)
     {
-        var hit = NextPlayer.ReceiveShot(row, col);
-        HandlePostShot(hit);
-        return hit;
+        var shotResult = NextPlayer.ReceiveShot(row, col);
+        HandlePostShot(shotResult.HasHit);
+        return shotResult;
     }
 
     private void HandlePostShot(bool hit)
