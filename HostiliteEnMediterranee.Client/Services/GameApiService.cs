@@ -9,7 +9,7 @@ namespace HostiliteEnMediterranee.Client.Services
     public class GameApiService
     {
         private readonly HttpClient _httpClient;
-        private readonly bool DebugMode = true;
+        private readonly bool DebugMode = false;
 
         public GameApiService(HttpClient httpClient)
         {
@@ -44,7 +44,7 @@ namespace HostiliteEnMediterranee.Client.Services
                 if (!hasHit) {
                     coords.Add(new CoordinatesDto(random.Next(0, 3), 0));
                 }
-                return new ShootingResponse(GameStatusDto.InProgress, "", hasHit, coords);
+                return new ShootingResponse(GameStatusDto.InProgress, "", hasHit, coords, null);
             }
             var response = await _httpClient.PostAsJsonAsync($"/api/games/{gameId}/shoot", shootingRequest);
             response.EnsureSuccessStatusCode();
