@@ -1,7 +1,7 @@
 namespace HostiliteEnMediterranee.Models.Dto;
 
 // ReSharper disable once InconsistentNaming
-public enum IALevelDto
+public enum AILevelDto
 {
     Dumb,
     Medium
