@@ -25,4 +25,12 @@ public class AIPlayer : Player
         _possibleShots.RemoveAt(0);
         return nextShot;
     }
+
+    public void AddShot(Coordinates shot)
+    {
+        if (!_possibleShots.Contains(shot))
+        {
+            _possibleShots.Add(shot);
+        }
+    }
 }

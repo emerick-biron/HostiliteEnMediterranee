@@ -6,7 +6,7 @@ public class Game
 {
     public readonly Guid Id = Guid.NewGuid();
     public readonly List<Player> Players = [];
-    private readonly Stack<ShotRecord> ShotHistory = new();
+    private readonly Stack<Shot> ShotHistory = new();
 
     public Game(Player player1, Player player2)
     {
@@ -36,7 +36,7 @@ public class Game
     public ShotResult CurrentPlayerShot(int row, int col)
     {
         var shotResult = NextPlayer.ReceiveShot(row, col);
-        ShotHistory.Push(new ShotRecord(CurrentPlayer, new Coordinates(row, col), shotResult));
+        ShotHistory.Push(new Shot(CurrentPlayer, NextPlayer, new Coordinates(row, col), shotResult));
         if (NextPlayer.HasLost())
         {
             Status = GameStatus.Over;
@@ -82,5 +82,37 @@ public class Game
         }
 
         return gameInfo.ToString();
+    }
+
+    public Shot? UndoLastShot()
+    {
+        if (ShotHistory.Count == 0)
+        {
+            return null;
+        }
+
+        var lastShot = ShotHistory.Pop();
+        var (shooter, targetPlayer, targetCoordinates, shotResult) = lastShot;
+
+        if (shotResult.HitShip == null)
+        {
+            targetPlayer.Grid[targetCoordinates.Row, targetCoordinates.Column] = '\0';
+        }
+        else
+        {
+            targetPlayer.Grid[targetCoordinates.Row, targetCoordinates.Column] = shotResult.HitShip.Type;
+        }
+
+        if (shooter is AIPlayer aiPlayer)
+        {
+            aiPlayer.AddShot(targetCoordinates);
+        }
+
+        if (shotResult.HitShip == null)
+        {
+            SwitchCurrentPlayer();
+        }
+
+        return lastShot;
     }
 }

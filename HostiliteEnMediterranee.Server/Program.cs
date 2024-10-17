@@ -48,7 +48,7 @@ app.MapPost("/games/start", ([FromServices] GameService gameService) =>
     return Results.Ok(response);
 });
 
-app.MapPost("/games/{gameId:guid}/shoot", (
+app.MapPost("/games/{gameId:guid}/shoots", (
     [FromServices] GameService gameService,
     [FromRoute] Guid gameId,
     [FromBody] ShootingRequest request,
@@ -65,6 +65,14 @@ app.MapPost("/games/{gameId:guid}/shoot", (
 
     var response = gameService.Shoot(gameId, request);
     return Results.Ok(response);
+});
+
+app.MapPost("/games/{gameId:guid}/shoots/undo", (
+    [FromServices] GameService gameService,
+    [FromRoute] Guid gameId
+) =>
+{
+    gameService.UndoLastPlayerShot(gameId);
 });
 
 app.MapGrpcService<GameServiceGRPC>();

@@ -99,4 +99,26 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
             OpponentShipSunk: null
         );
     }
+
+    public void UndoLastPlayerShot(Guid gameId)
+    {
+        var game = gameRepository.FindById(gameId) ?? throw new GameNotFoundException("Game not found");
+
+        logger.LogInformation("Attempting to undo the last player shot in game {GameId}", gameId);
+
+        while (game.UndoLastShot() is { } lastShot)
+        {
+            logger.LogInformation("Undoing shot by {ShooterName} targeting {TargetName} at ({Row}, {Col})",
+                lastShot.Shooter.Name, lastShot.TargetPlayer.Name, lastShot.TargetCoordinates.Row,
+                lastShot.TargetCoordinates.Column);
+
+            if (lastShot.Shooter is not AIPlayer)
+            {
+                break;
+            }
+        }
+
+        logger.LogInformation("Undo of last player shot completed for game {GameId}. Current game state:\n{GameInfo}",
+            gameId, game);
+    }
 }
