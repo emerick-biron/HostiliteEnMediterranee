@@ -4,9 +4,9 @@ namespace HostiliteEnMediterranee.Server.Entities;
 
 public class Game
 {
+    private readonly Stack<Shot> _shotHistory = new();
     public readonly Guid Id = Guid.NewGuid();
     public readonly List<Player> Players = [];
-    private readonly Stack<Shot> ShotHistory = new();
 
     public Game(Player player1, Player player2)
     {
@@ -35,8 +35,8 @@ public class Game
 
     public ShotResult CurrentPlayerShot(int row, int col)
     {
-        var shotResult = NextPlayer.ReceiveShot(row, col);
-        ShotHistory.Push(new Shot(CurrentPlayer, NextPlayer, new Coordinates(row, col), shotResult));
+        var shotResult = CurrentPlayer.Shoot(row, col, NextPlayer);
+        _shotHistory.Push(new Shot(CurrentPlayer, NextPlayer, new Coordinates(row, col), shotResult));
         if (NextPlayer.HasLost())
         {
             Status = GameStatus.Over;
@@ -86,12 +86,12 @@ public class Game
 
     public Shot? UndoLastShot()
     {
-        if (ShotHistory.Count == 0)
+        if (_shotHistory.Count == 0)
         {
             return null;
         }
 
-        var lastShot = ShotHistory.Pop();
+        var lastShot = _shotHistory.Pop();
         var (shooter, targetPlayer, targetCoordinates, shotResult) = lastShot;
 
         if (shotResult.HitShip == null)
@@ -105,7 +105,7 @@ public class Game
 
         if (shooter is AIPlayer aiPlayer)
         {
-            aiPlayer.AddShot(targetCoordinates);
+            aiPlayer.UndoShot(lastShot);
         }
 
         if (shotResult.HitShip == null)

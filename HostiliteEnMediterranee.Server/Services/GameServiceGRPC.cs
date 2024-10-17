@@ -14,7 +14,7 @@ public class GameServiceGRPC(GameRepository gameRepository, ILogger<GameService>
     public override Task<StartGameResponse> StartGame(Empty request, ServerCallContext context)
     {
         var player = new Player("Player");
-        var ia = new AIPlayer("IA");
+        var ia = new DumbAIPlayer("IA");
         player.GenerateRandomGrid(Ship.GetDefaultShips());
         ia.GenerateRandomGrid(Ship.GetDefaultShips());
         var game = new Game(player, ia);

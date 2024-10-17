@@ -132,7 +132,12 @@ public class Player
         return ship;
     }
 
-    public ShotResult ReceiveShot(int row, int col)
+    public virtual ShotResult Shoot(int row, int col, Player targetPlayer)
+    {
+        return targetPlayer.ReceiveShot(row, col);
+    }
+
+    private ShotResult ReceiveShot(int row, int col)
     {
         switch (Grid[row, col])
         {

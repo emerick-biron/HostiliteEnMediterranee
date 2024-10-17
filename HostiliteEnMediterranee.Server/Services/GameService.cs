@@ -13,7 +13,7 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
     public StartGameResponse StartGame()
     {
         var player = new Player("Player");
-        var ia = new AIPlayer("IA");
+        var ia = new DumbAIPlayer("IA");
         player.GenerateRandomGrid(Ship.GetDefaultShips());
         ia.GenerateRandomGrid(Ship.GetDefaultShips());
         var game = new Game(player, ia);
@@ -100,14 +100,17 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
         );
     }
 
-    public void UndoLastPlayerTurn(Guid gameId)
+    public UndoLastPlayerTurnResponse UndoLastPlayerTurn(Guid gameId)
     {
         var game = gameRepository.FindById(gameId) ?? throw new GameNotFoundException("Game not found");
 
         logger.LogInformation("Attempting to undo the last player shot in game {GameId}", gameId);
 
+        var undoneShots = new List<ShotDto>();
         while (game.UndoLastShot() is { } lastShot)
         {
+            undoneShots.Add(lastShot.ToDto());
+
             logger.LogInformation("Undoing shot by {ShooterName} targeting {TargetName} at ({Row}, {Col})",
                 lastShot.Shooter.Name, lastShot.TargetPlayer.Name, lastShot.TargetCoordinates.Row,
                 lastShot.TargetCoordinates.Column);
@@ -120,5 +123,6 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
 
         logger.LogInformation("Undo of last player shot completed for game {GameId}. Current game state:\n{GameInfo}",
             gameId, game);
+        return new UndoLastPlayerTurnResponse(undoneShots);
     }
 }

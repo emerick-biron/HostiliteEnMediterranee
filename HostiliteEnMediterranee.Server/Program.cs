@@ -72,7 +72,8 @@ app.MapPost("/games/{gameId:guid}/turns/undo", (
     [FromRoute] Guid gameId
 ) =>
 {
-    gameService.UndoLastPlayerTurn(gameId);
+    var response = gameService.UndoLastPlayerTurn(gameId);
+    return Results.Ok(response);
 });
 
 app.MapGrpcService<GameServiceGRPC>();
