@@ -100,7 +100,7 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
         );
     }
 
-    public void UndoLastPlayerShot(Guid gameId)
+    public void UndoLastPlayerTurn(Guid gameId)
     {
         var game = gameRepository.FindById(gameId) ?? throw new GameNotFoundException("Game not found");
 
