@@ -1,5 +1,6 @@
 using FluentValidation;
 using HostiliteEnMediterranee.Models.Requests;
+using HostiliteEnMediterranee.Models.Responses;
 using HostiliteEnMediterranee.Server.Repositories;
 using HostiliteEnMediterranee.Server.Services;
 using HostiliteEnMediterranee.Server.Validators;
@@ -49,32 +50,34 @@ app.MapPost("/games/start", ([FromServices] GameService gameService) =>
 });
 
 app.MapPost("/games/{gameId:guid}/shoots", (
-    [FromServices] GameService gameService,
-    [FromRoute] Guid gameId,
-    [FromBody] ShootingRequest request,
-    [FromServices] IValidator<ShootingRequest> validator
-) =>
-{
-    var validationResult = validator.Validate(request);
-
-    if (!validationResult.IsValid)
+        [FromServices] GameService gameService,
+        [FromRoute] Guid gameId,
+        [FromBody] ShootingRequest request,
+        [FromServices] IValidator<ShootingRequest> validator
+    ) =>
     {
-        return Results.BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
-    }
+        var validationResult = validator.Validate(request);
+
+        if (!validationResult.IsValid)
+        {
+            return Results.BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
+        }
 
 
-    var response = gameService.Shoot(gameId, request);
-    return Results.Ok(response);
-});
+        var response = gameService.Shoot(gameId, request);
+        return Results.Ok(response);
+    })
+    .Produces<ShootingResponse>();
 
 app.MapPost("/games/{gameId:guid}/turns/undo", (
-    [FromServices] GameService gameService,
-    [FromRoute] Guid gameId
-) =>
-{
-    var response = gameService.UndoLastPlayerTurn(gameId);
-    return Results.Ok(response);
-});
+        [FromServices] GameService gameService,
+        [FromRoute] Guid gameId
+    ) =>
+    {
+        var response = gameService.UndoLastPlayerTurn(gameId);
+        return Results.Ok(response);
+    })
+    .Produces<UndoLastPlayerTurnResponse>();
 
 app.MapGrpcService<GameServiceGRPC>();
 
