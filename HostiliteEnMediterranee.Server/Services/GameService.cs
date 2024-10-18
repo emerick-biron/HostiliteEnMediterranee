@@ -49,7 +49,7 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
             }
         }
 
-        logger.LogInformation("Game started:\n{GameInfo}", game.ToString());
+        logger.LogInformation("Game started with AI {AILevel}:\n{GameInfo}", aiLevel.ToString(), game.ToString());
 
         return new StartGameResponse(
             game.Id,
