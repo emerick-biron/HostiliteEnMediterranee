@@ -1,8 +1,5 @@
-using Grpc.Net.Client;
-using Grpc.Net.Client.Web;
 using HostiliteEnMediterranee.Client;
 using HostiliteEnMediterranee.Client.Services;
-using HostiliteEnMediterranee.Proto;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -10,7 +7,7 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://159.31.77.255:8080/api") });
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://127.0.0.1:8080/api") });
 /*builder.Services.AddScoped(sp =>
 {
     var httpClient = new HttpClient(new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler()));
@@ -20,7 +17,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://
 */
 builder.Services.AddScoped<GameApiService>();
 builder.Services.AddScoped<GameState>();
-
 
 
 await builder.Build().RunAsync();
