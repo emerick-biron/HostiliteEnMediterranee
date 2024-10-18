@@ -24,17 +24,17 @@ namespace HostiliteEnMediterranee.Client.Services
             _gameApiService = gameApiService;
         }
 
-        public async Task StartNewGameAsync(int gridSize = 10, int difficulty = 1, List<Ship> playerships = null)
+        public async Task StartNewGameAsync(AILevelDto level)
         {
-            GridSize = gridSize;
-            Difficulty = difficulty;
-            PlayerGrid = new char[gridSize, gridSize];
-            OpponentGrid = new bool?[gridSize, gridSize];
+            GridSize = 10;
+            PlayerGrid = new char[GridSize, GridSize];
+            OpponentGrid = new bool?[GridSize, GridSize];
             InitializeGrids();
 
-            var response = await _gameApiService.StartGameAsync();
+            var response = await _gameApiService.StartGameAsync(level);
             Id = response.GameId;
-            InitPlayerShips(response.PlayerShips);
+            GameStatus = GameStatusDto.InProgress;
+            InitShips(response.PlayerShips);
 
             MovesHistory  = new List<Move>();
         }
@@ -51,19 +51,22 @@ namespace HostiliteEnMediterranee.Client.Services
             }
         }
 
-        private void InitPlayerShips(List<ShipDto> playerShips)
+        private void InitShips(List<ShipDto> playerShips)
         {
             PlayerShips = new List<Ship>();
             OpponentShips = new List<Ship>();
             foreach (var ship in playerShips)
             {
-                var newShip = new Ship(ship.Model, ship.Coordinates);
-                PlayerShips.Add(newShip);
-                foreach (var coordinate in newShip.Coordinates)
+                var newPlayerShip = new Ship(ship.Model, ship.Coordinates);
+                PlayerShips.Add(newPlayerShip);
+
+                var newOpponentShip = new Ship(ship.Model, ship.Coordinates.Count);
+                OpponentShips.Add(newOpponentShip);
+                foreach (var coordinate in newPlayerShip.Coordinates)
                 {
                     if (IsWithinBounds(coordinate.Row, coordinate.Column))
                     {
-                        PlayerGrid[coordinate.Row, coordinate.Column] = newShip.Model;
+                        PlayerGrid[coordinate.Row, coordinate.Column] = newPlayerShip.Model;
                     }
                 }
             }
@@ -98,7 +101,8 @@ namespace HostiliteEnMediterranee.Client.Services
             }
             if (sendShootResponse.OpponentShipSunk != null)
             {
-                OpponentShips.Add(new Ship(sendShootResponse.OpponentShipSunk.Model, sendShootResponse.OpponentShipSunk.Coordinates));
+                var ship = OpponentShips.Find(s => s.Model == sendShootResponse.OpponentShipSunk.Model);
+                ship.UpdtateOpponentCoordinates(sendShootResponse.OpponentShipSunk.Coordinates);
             }
         }
 
@@ -126,7 +130,6 @@ namespace HostiliteEnMediterranee.Client.Services
                     if (shot.HitShip != null)
                     {
                         var ship = PlayerShips.Find(ship => ship.Model == shot.HitShip.Model);
-                        //find hit coordinate by comparing coordinates and remove it
                         var hitCoord = ship.HitCoordinates.Find(coord => coord.Row == shot.TargetCoordinates.Row && coord.Column == shot.TargetCoordinates.Column);
                         ship.HitCoordinates.Remove(hitCoord);
                         ship.IsSinked = false;
@@ -184,6 +187,10 @@ namespace HostiliteEnMediterranee.Client.Services
         {
             foreach (var ship in OpponentShips)
             {
+                if (ship.IsSinked == false)
+                {
+                    continue;
+                }
                 foreach (var coord in ship.Coordinates)
                 {
                     if (coord.Row == row && coord.Column == col) return true;

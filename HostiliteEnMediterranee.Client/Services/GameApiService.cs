@@ -16,7 +16,7 @@ namespace HostiliteEnMediterranee.Client.Services
             _httpClient = httpClient;
         }
 
-        public async Task<StartGameResponse> StartGameAsync()
+        public async Task<StartGameResponse> StartGameAsync(AILevelDto level)
         {
             if (DebugMode)
             {
@@ -29,7 +29,8 @@ namespace HostiliteEnMediterranee.Client.Services
                 ships.Add(new ShipDto('C', coords));
                 return new StartGameResponse(Guid.NewGuid(), ships);
             }
-            var response = await _httpClient.PostAsync("/games/start", null);
+            var request = new StartGameRequest(level);
+            var response = await _httpClient.PostAsJsonAsync("/games/start", request);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<StartGameResponse>();
         }

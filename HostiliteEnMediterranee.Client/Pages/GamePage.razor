@@ -1,4 +1,4 @@
-﻿    @page "/game"
+﻿@page "/game"
 <div class="container">
     <div class="left-panel">
         <div class="remaining-ships">
@@ -41,6 +41,10 @@
                 <div class="boats">
                     @foreach (var ship in GameState.OpponentShips)
                     {
+                        if (!ship.IsSinked)
+                        {
+                            continue;
+                        }
                         var topPosition = ship.Coordinates[0].Row * (100 / GameState.GridSize) + 1;
                         if (ship.Orientation == "horizontal")
                         {
@@ -61,7 +65,7 @@
                     transform: @(ship.Orientation == "horizontal" ? "rotate(-90deg)" : "none");
                     transform-origin: top left;
                     filter: blur(3px) saturate(0.5);
-                                            ">
+                                                ">
                             <img src="assets/ship/ship-@(ship.Model).png" alt="Ship" />
                         </div>
 
@@ -120,7 +124,7 @@
                     transform: @(ship.Orientation == "horizontal" ? "rotate(-90deg)" : "none");
                     transform-origin: top left;
                     filter: @(ship.IsSinked? "blur(3px) saturate(0.5)" :"");
-                                        ">
+                                            ">
                             <img src="assets/ship/ship-@(ship.Model).png" alt="Ship" />
                         </div>
 
@@ -149,28 +153,29 @@
     <div class="right-panel">
         <h2>Move History</h2>
         <div class="move-history">
-                @foreach (var move in GameState.MovesHistory)
-                {
-                    <p>@move.ToString()</p>
-                }
-            
+            @foreach (var move in GameState.MovesHistory)
+            {
+                <p>@move.ToString()</p>
+            }
+
         </div>
         <span class="undo-button"
               @onclick="() => Undo()">
-              Undo
+            Undo
         </span>
     </div>
 </div>
 @if (GameState.GameStatus == GameStatusDto.Over)
 {
-    <div class="status-message">
+    <div class="status-message @(GameState.PlayerWin ? "win" : "lose")">
         <span>@(GameState.PlayerWin ? "You win!" : "You lose!")</span>
-        <button class="btn btn-primary" @onclick="StartNewGameAsync">Start New Game</button>
+        <button class="start-button" @onclick="StartNewGameAsync">Start New Game</button>
     </div>
 }
 
 @code {
     [Inject] private GameState GameState { get; set; }
+    [Inject] private NavigationManager NavigationManager { get; set; }
 
     private async Task CellClicked(int row, int col)
     {
@@ -186,22 +191,22 @@
 
     private async Task StartNewGameAsync()
     {
-        await GameState.StartNewGameAsync();
-        StateHasChanged();
+        NavigationManager.NavigateTo("/");
     }
 }
 
 <style>
-    body{
-        margin:0;
+    body {
+        margin: 0;
     }
+
     .container {
         display: flex;
         justify-content: center;
         align-items: stretch;
         background-color: #1D2D44;
         color: #F0EBD8;
-        margin:0;
+        margin: 0;
         height: 100vh;
     }
 
@@ -219,7 +224,7 @@
         cursor: pointer;
     }
 
-    .undo-button{
+    .undo-button {
         width: 100%;
         background-color: #748CAB;
         padding: 10px;
@@ -281,6 +286,7 @@
         background-color: #748CAB;
         border: 1px solid #F0EBD822;
     }
+
         .cell.hit {
             background-image: url('assets/hit.png');
             cursor: not-allowed;
@@ -310,10 +316,34 @@
         position: absolute;
         top: 50%;
         left: 50%;
+        width: 30vw;
+        height: 20vh;
+        display: flex;
+        color: white;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         transform: translate(-50%, -50%);
-        font-size: 2em;
-        color: #4caf50;
-        font-size: 1.5em;
-        color: #4caf50;
+        border-radius: 8px;
+        box-shadow: 0px 10px 10px #00000055;
+    }
+
+        .status-message.win {
+            background-color: green;
+        }
+
+        .status-message.lose {
+            background-color: red;
+        }
+
+    .start-button {
+        padding: 10px 20px;
+        font-size: 16px;
+        color: white;
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
     }
 </style>
