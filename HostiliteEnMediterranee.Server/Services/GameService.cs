@@ -10,10 +10,17 @@ namespace HostiliteEnMediterranee.Server.Services;
 
 public class GameService(GameRepository gameRepository, ILogger<GameService> logger)
 {
-    public StartGameResponse StartGame()
+    public StartGameResponse StartGame(StartGameRequest startGameRequest)
     {
+        var aiLevel = startGameRequest.AiLevel switch
+        {
+            AILevelDto.Dumb => AIPlayer.Level.Dumb,
+            AILevelDto.Medium => AIPlayer.Level.Medium,
+            _ => throw new ArgumentOutOfRangeException(nameof(startGameRequest.AiLevel), startGameRequest.AiLevel, null)
+        };
+
         var player = new Player("Player");
-        var ia = AIPlayer.CreateAIPlayer("AI", AIPlayer.Level.Medium);
+        var ia = AIPlayer.CreateAIPlayer("AI", aiLevel);
         player.GenerateRandomGrid(Ship.GetDefaultShips());
         ia.GenerateRandomGrid(Ship.GetDefaultShips());
         var game = new Game(player, ia);
