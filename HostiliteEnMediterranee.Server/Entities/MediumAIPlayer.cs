@@ -22,7 +22,11 @@ public class MediumAIPlayer(string name) : AIPlayer(name)
             if (!_triedReverseDirection)
             {
                 _triedReverseDirection = true;
-                return GetNextInDirection(_lastHit, _currentDirection.Value, _triedReverseDirection);
+                var nextReverseTarget = GetNextInDirection(_lastHit, _currentDirection.Value, _triedReverseDirection);
+                if (IsValidTarget(nextReverseTarget))
+                {
+                    return nextReverseTarget;
+                }
             }
 
             _currentDirection = null;
@@ -106,7 +110,9 @@ public class MediumAIPlayer(string name) : AIPlayer(name)
     {
         if (coordinates.Row < 0 || coordinates.Row >= GridSize || coordinates.Column < 0 ||
             coordinates.Column >= GridSize)
+        {
             return false;
+        }
 
         return _shotHistory.All(s => s.TargetCoordinates != coordinates);
     }
