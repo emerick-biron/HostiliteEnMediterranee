@@ -13,7 +13,7 @@ public class GameService(GameRepository gameRepository, ILogger<GameService> log
     public StartGameResponse StartGame()
     {
         var player = new Player("Player");
-        var ia = AIPlayer.CreateAIPlayer("AI", AIPlayer.Level.Dumb);
+        var ia = AIPlayer.CreateAIPlayer("AI", AIPlayer.Level.Medium);
         player.GenerateRandomGrid(Ship.GetDefaultShips());
         ia.GenerateRandomGrid(Ship.GetDefaultShips());
         var game = new Game(player, ia);
