@@ -43,7 +43,7 @@
                     {
                         if (!ship.IsSinked)
                         {
-                            return;
+                            continue;
                         }
                         var topPosition = ship.Coordinates[0].Row * (100 / GameState.GridSize) + 1;
                         if (ship.Orientation == "horizontal")
@@ -169,7 +169,7 @@
 {
     <div class="status-message @(GameState.PlayerWin ? "win" : "lose")">
         <span>@(GameState.PlayerWin ? "You win!" : "You lose!")</span>
-        <button class="btn btn-primary" @onclick="StartNewGameAsync">Start New Game</button>
+        <button class="start-button" @onclick="StartNewGameAsync">Start New Game</button>
     </div>
 }
 
@@ -335,4 +335,15 @@
         .status-message.lose {
             background-color: red;
         }
+
+    .start-button {
+        padding: 10px 20px;
+        font-size: 16px;
+        color: white;
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
 </style>

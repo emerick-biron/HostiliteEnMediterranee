@@ -33,6 +33,7 @@ namespace HostiliteEnMediterranee.Client.Services
 
             var response = await _gameApiService.StartGameAsync(level);
             Id = response.GameId;
+            GameStatus = GameStatusDto.InProgress;
             InitShips(response.PlayerShips);
 
             MovesHistory  = new List<Move>();
@@ -186,6 +187,10 @@ namespace HostiliteEnMediterranee.Client.Services
         {
             foreach (var ship in OpponentShips)
             {
+                if (ship.IsSinked == false)
+                {
+                    continue;
+                }
                 foreach (var coord in ship.Coordinates)
                 {
                     if (coord.Row == row && coord.Column == col) return true;

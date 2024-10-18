@@ -10,6 +10,7 @@
 @code {
     [Inject] private NavigationManager NavigationManager { get; set; }
     [Inject] private GameState GameState { get; set; }
+
     private string SelectedDifficulty { get; set; } = "Dumb"; // Default difficulty
 
     private async Task StartNewGameAsync()

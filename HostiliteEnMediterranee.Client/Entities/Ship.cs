@@ -32,8 +32,8 @@ namespace HostiliteEnMediterranee.Client.Entities
 
         public void UpdtateOpponentCoordinates(List<CoordinatesDto> coords)
         {
-            HitCoordinates.AddRange(coords);
-            Coordinates.AddRange(coords);
+            HitCoordinates = coords;
+            Coordinates = coords;
             IsSinked = true;
             Orientation = GetOrientation();
             SortCoordinates(Orientation);
