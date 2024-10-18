@@ -43,9 +43,20 @@ app.Use(async (context, next) =>
 app.UseCors();
 app.UsePathBase("/api");
 
-app.MapPost("/games/start", ([FromServices] GameService gameService) =>
+app.MapPost("/games/start", (
+    [FromServices] GameService gameService,
+    [FromBody] StartGameRequest request,
+    [FromServices] IValidator<StartGameRequest> validator
+) =>
 {
-    var response = gameService.StartGame();
+    var validationResult = validator.Validate(request);
+
+    if (!validationResult.IsValid)
+    {
+        return Results.BadRequest(validationResult.Errors.Select(e => e.ErrorMessage));
+    }
+
+    var response = gameService.StartGame(request);
     return Results.Ok(response);
 });
 

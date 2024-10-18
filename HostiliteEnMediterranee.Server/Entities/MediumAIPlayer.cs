@@ -3,7 +3,7 @@ namespace HostiliteEnMediterranee.Server.Entities;
 // ReSharper disable once InconsistentNaming
 public class MediumAIPlayer(string name) : AIPlayer(name)
 {
-    private readonly List<Shot> _shotHistory = [];
+    private readonly List<Shot> _shotHistory = new();
     private Direction? _currentDirection;
     private bool _isChasingShip;
     private Coordinates? _lastHit;
@@ -11,18 +11,20 @@ public class MediumAIPlayer(string name) : AIPlayer(name)
 
     public override Coordinates GetNextShot()
     {
-        if (_lastHit != null && _currentDirection != null && _isChasingShip)
+        if (_isChasingShip && _lastHit != null && _currentDirection != null)
         {
             var nextTarget = GetNextInDirection(_lastHit, _currentDirection.Value, _triedReverseDirection);
+
             if (IsValidTarget(nextTarget))
-            {
                 return nextTarget;
-            }
 
             if (!_triedReverseDirection)
             {
                 _triedReverseDirection = true;
-                return GetNextInDirection(_lastHit, _currentDirection.Value, _triedReverseDirection);
+                nextTarget = GetNextInDirection(_lastHit, _currentDirection.Value, _triedReverseDirection);
+
+                if (IsValidTarget(nextTarget))
+                    return nextTarget;
             }
 
             _currentDirection = null;
@@ -36,8 +38,9 @@ public class MediumAIPlayer(string name) : AIPlayer(name)
 
         if (lastHit != null)
         {
-            var possibleTargets = GetAdjacentCoordinates(lastHit);
-            var availableTargets = possibleTargets.Where(IsValidTarget).ToList();
+            var availableTargets = GetAdjacentCoordinates(lastHit)
+                .Where(IsValidTarget)
+                .ToList();
 
             if (availableTargets.Any())
             {
@@ -51,19 +54,6 @@ public class MediumAIPlayer(string name) : AIPlayer(name)
 
         _isChasingShip = false;
         return GetRandomTarget();
-    }
-
-    private IEnumerable<Coordinates> GetAdjacentCoordinates(Coordinates lastHit)
-    {
-        var possibleCoordinates = new List<Coordinates>
-        {
-            new Coordinates(lastHit.Row - 1, lastHit.Column),
-            new Coordinates(lastHit.Row + 1, lastHit.Column),
-            new Coordinates(lastHit.Row, lastHit.Column - 1),
-            new Coordinates(lastHit.Row, lastHit.Column + 1)
-        };
-
-        return possibleCoordinates;
     }
 
     public override ShotResult Shoot(int row, int col, Player targetPlayer)
@@ -83,15 +73,8 @@ public class MediumAIPlayer(string name) : AIPlayer(name)
         }
         else
         {
-            if (!_triedReverseDirection)
-            {
-                _triedReverseDirection = true;
-            }
-            else
-            {
-                _currentDirection = null;
-                _isChasingShip = false;
-            }
+            _triedReverseDirection = !_triedReverseDirection || (_currentDirection = null) != null;
+            _isChasingShip = _currentDirection != null;
         }
 
         return result;
@@ -104,49 +87,48 @@ public class MediumAIPlayer(string name) : AIPlayer(name)
 
     private bool IsValidTarget(Coordinates coordinates)
     {
-        if (coordinates.Row < 0 || coordinates.Row >= GridSize || coordinates.Column < 0 ||
-            coordinates.Column >= GridSize)
-            return false;
-
-        return _shotHistory.All(s => s.TargetCoordinates != coordinates);
+        return coordinates.Row >= 0 && coordinates.Row < GridSize &&
+               coordinates.Column >= 0 && coordinates.Column < GridSize &&
+               _shotHistory.All(s => s.TargetCoordinates != coordinates);
     }
 
     private Coordinates GetRandomTarget()
     {
-        var allPossibleTargets = new List<Coordinates>();
-        for (var row = 0; row < GridSize; row++)
-        {
-            for (var col = 0; col < GridSize; col++)
-            {
-                var coordinates = new Coordinates(row, col);
-                if (IsValidTarget(coordinates))
-                {
-                    allPossibleTargets.Add(coordinates);
-                }
-            }
-        }
-
-        return allPossibleTargets.OrderBy(_ => Random.Shared.Next()).First();
+        return Enumerable.Range(0, GridSize)
+            .SelectMany(row => Enumerable.Range(0, GridSize).Select(col => new Coordinates(row, col)))
+            .Where(IsValidTarget)
+            .OrderBy(_ => Random.Shared.Next())
+            .First();
     }
 
     private Coordinates GetNextInDirection(Coordinates lastHit, Direction direction, bool reverse)
     {
-        if (direction == Direction.Horizontal)
+        return direction switch
         {
-            var left = new Coordinates(lastHit.Row, lastHit.Column - 1);
-            var right = new Coordinates(lastHit.Row, lastHit.Column + 1);
-
-            return reverse ? right : left;
-        }
-
-        var up = new Coordinates(lastHit.Row - 1, lastHit.Column);
-        var down = new Coordinates(lastHit.Row + 1, lastHit.Column);
-
-        return reverse ? down : up;
+            Direction.Horizontal => reverse
+                ? new Coordinates(lastHit.Row, lastHit.Column + 1)
+                : new Coordinates(lastHit.Row, lastHit.Column - 1),
+            _ => reverse
+                ? new Coordinates(lastHit.Row + 1, lastHit.Column)
+                : new Coordinates(lastHit.Row - 1, lastHit.Column)
+        };
     }
 
     private Direction GuessDirection()
     {
         return (Direction)Random.Shared.Next(2);
+    }
+
+    private IEnumerable<Coordinates> GetAdjacentCoordinates(Coordinates lastHit)
+    {
+        var possibleCoordinates = new List<Coordinates>
+        {
+            new Coordinates(lastHit.Row - 1, lastHit.Column),
+            new Coordinates(lastHit.Row + 1, lastHit.Column),
+            new Coordinates(lastHit.Row, lastHit.Column - 1),
+            new Coordinates(lastHit.Row, lastHit.Column + 1)
+        };
+
+        return possibleCoordinates;
     }
 }
