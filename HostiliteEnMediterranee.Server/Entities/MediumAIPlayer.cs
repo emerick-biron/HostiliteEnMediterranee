@@ -7,18 +7,26 @@ public class MediumAIPlayer(string name) : AIPlayer(name)
     private Direction? _currentDirection;
     private bool _isChasingShip;
     private Coordinates? _lastHit;
+    private bool _triedReverseDirection;
 
     public override Coordinates GetNextShot()
     {
         if (_lastHit != null && _currentDirection != null && _isChasingShip)
         {
-            var nextTarget = GetNextInDirection(_lastHit, _currentDirection.Value);
+            var nextTarget = GetNextInDirection(_lastHit, _currentDirection.Value, _triedReverseDirection);
             if (IsValidTarget(nextTarget))
             {
                 return nextTarget;
             }
 
+            if (!_triedReverseDirection)
+            {
+                _triedReverseDirection = true;
+                return GetNextInDirection(_lastHit, _currentDirection.Value, _triedReverseDirection);
+            }
+
             _currentDirection = null;
+            _triedReverseDirection = false;
         }
 
         var lastHit = _shotHistory
@@ -36,6 +44,7 @@ public class MediumAIPlayer(string name) : AIPlayer(name)
                 _lastHit = lastHit;
                 _currentDirection = GuessDirection();
                 _isChasingShip = true;
+                _triedReverseDirection = false;
                 return availableTargets.OrderBy(_ => Random.Shared.Next()).First();
             }
         }
@@ -69,12 +78,20 @@ public class MediumAIPlayer(string name) : AIPlayer(name)
             if (_currentDirection == null)
             {
                 _currentDirection = GuessDirection();
+                _triedReverseDirection = false;
             }
         }
         else
         {
-            _currentDirection = null;
-            _isChasingShip = false;
+            if (!_triedReverseDirection)
+            {
+                _triedReverseDirection = true;
+            }
+            else
+            {
+                _currentDirection = null;
+                _isChasingShip = false;
+            }
         }
 
         return result;
@@ -112,20 +129,20 @@ public class MediumAIPlayer(string name) : AIPlayer(name)
         return allPossibleTargets.OrderBy(_ => Random.Shared.Next()).First();
     }
 
-    private Coordinates GetNextInDirection(Coordinates lastHit, Direction direction)
+    private Coordinates GetNextInDirection(Coordinates lastHit, Direction direction, bool reverse)
     {
         if (direction == Direction.Horizontal)
         {
             var left = new Coordinates(lastHit.Row, lastHit.Column - 1);
             var right = new Coordinates(lastHit.Row, lastHit.Column + 1);
 
-            return IsValidTarget(left) ? left : right;
+            return reverse ? right : left;
         }
 
         var up = new Coordinates(lastHit.Row - 1, lastHit.Column);
         var down = new Coordinates(lastHit.Row + 1, lastHit.Column);
 
-        return IsValidTarget(up) ? up : down;
+        return reverse ? down : up;
     }
 
     private Direction GuessDirection()
