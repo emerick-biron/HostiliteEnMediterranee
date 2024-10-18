@@ -3,15 +3,15 @@
     <div class="left-panel">
         <div class="remaining-ships">
             <h2>Player Ships</h2>
-            @foreach (var ship in GameState.GetUnsunkPlayerShips())
+            @foreach (var ship in GameState.PlayerShips)
             {
-                <p>@ship.Model - Remaining</p>
+                <p>@ship.Model - @ship.Size cells - @(ship.IsSinked ? "Sink" : "Remaining")</p>
             }
 
             <h2>Opponent Ships</h2>
-            @foreach (var ship in GameState.GetUnsunkOpponentShips())
+            @foreach (var ship in GameState.OpponentShips)
             {
-                <p>@ship.Model - Remaining</p>
+                <p>@ship.Model - @ship.Size cells - @(ship.IsSinked ? "Sink" : "Remaining")</p>
             }
         </div>
     </div>
@@ -169,7 +169,7 @@
 {
     <div class="status-message @(GameState.PlayerWin ? "win" : "lose")">
         <span>@(GameState.PlayerWin ? "You win!" : "You lose!")</span>
-        <button class="start-button" @onclick="StartNewGameAsync">Start New Game</button>
+        <button class="btn btn-primary" @onclick="StartNewGameAsync">Start New Game</button>
     </div>
 }
 
