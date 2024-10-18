@@ -1,14 +1,62 @@
 ﻿@page "/"
-<button class="btn btn-primary" @onclick="StartNewGameAsync">Start New Game</button>
+<div class="game-setup">
+    <select @onchange="HandleDifficultyChange" class="difficulty-select">
+        <option value="Dumb">Dumb</option>
+        <option value="Medium">Medium</option>
+    </select>
+    <button class="start-button" @onclick="StartNewGameAsync">Start New Game</button>
+</div>
 
 @code {
     [Inject] private NavigationManager NavigationManager { get; set; }
     [Inject] private GameState GameState { get; set; }
+    private string SelectedDifficulty { get; set; } = "Dumb"; // Default difficulty
 
     private async Task StartNewGameAsync()
     {
-        await GameState.StartNewGameAsync();
-
+        AILevelDto level = SelectedDifficulty == "Dumb" ? AILevelDto.Dumb : AILevelDto.Medium;
+        await GameState.StartNewGameAsync(level);
         NavigationManager.NavigateTo("/game");
     }
+
+    private void HandleDifficultyChange(ChangeEventArgs e)
+    {
+        SelectedDifficulty = e.Value?.ToString() ?? "Dumb";
+    }
 }
+
+<style>
+    .game-setup {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #f3f4f6;
+        font-family: Arial, sans-serif;
+    }
+    
+    .difficulty-select {
+        margin-bottom: 20px;
+        padding: 10px;
+        width: 200px;
+        font-size: 16px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+    }
+
+    .start-button {
+        padding: 10px 20px;
+        font-size: 16px;
+        color: white;
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .start-button:hover {
+        background-color: #0056b3;
+    }
+</style>

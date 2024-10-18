@@ -22,6 +22,23 @@ namespace HostiliteEnMediterranee.Client.Entities
             SortCoordinates(Orientation);
         }
 
+        public Ship(char model, int size)
+        {
+            Model = model;
+            Size = size;
+            HitCoordinates = new List<CoordinatesDto>();
+            IsSinked = false;
+        }
+
+        public void UpdtateOpponentCoordinates(List<CoordinatesDto> coords)
+        {
+            HitCoordinates.AddRange(coords);
+            Coordinates.AddRange(coords);
+            IsSinked = true;
+            Orientation = GetOrientation();
+            SortCoordinates(Orientation);
+        }
+
         private string GetOrientation()
         {
             if (Coordinates[0].Row == Coordinates[1].Row)  return "horizontal";
