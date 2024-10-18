@@ -29,7 +29,7 @@ namespace HostiliteEnMediterranee.Client.Services
                 ships.Add(new ShipDto('C', coords));
                 return new StartGameResponse(Guid.NewGuid(), ships);
             }
-            var response = await _httpClient.PostAsync("/api/games/start", null);
+            var response = await _httpClient.PostAsync("/games/start", null);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<StartGameResponse>();
         }
@@ -46,9 +46,16 @@ namespace HostiliteEnMediterranee.Client.Services
                 }
                 return new ShootingResponse(GameStatusDto.InProgress, "", hasHit, coords, null);
             }
-            var response = await _httpClient.PostAsJsonAsync($"/api/games/{gameId}/shoot", shootingRequest);
+            var response = await _httpClient.PostAsJsonAsync($"/games/{gameId}/shoots", shootingRequest);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadFromJsonAsync<ShootingResponse>();
+        }
+
+        public async Task<UndoLastPlayerTurnResponse> UndoLastPlayerTurnAsync(Guid gameId)
+        {
+            var response = await _httpClient.PostAsync($"/games/{gameId}/turns/undo", null);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<UndoLastPlayerTurnResponse>();
         }
     }
 }

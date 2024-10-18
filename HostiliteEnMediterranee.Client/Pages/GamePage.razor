@@ -1,39 +1,58 @@
-﻿@page "/game"
-
-<div class="gameboard">
-    <div class="opponent-grid-container">
-        <div class="grid">
-            @for (int col = 0; col < GameState.GridSize; col++)
+﻿    @page "/game"
+<div class="container">
+    <div class="left-panel">
+        <div class="remaining-ships">
+            <h2>Player Ships</h2>
+            @foreach (var ship in GameState.GetUnsunkPlayerShips())
             {
-                <div class="row">
-                    @for (int row = 0; row < GameState.GridSize; row++)
-                    {
+                <p>@ship.Model - Remaining</p>
+            }
 
-                        var cell = GameState.OpponentGrid[row, col];
-                        var c_row = row;
-                        var c_col = col;
-                        <span class="cell opponent @(cell == false ? "miss" : cell == true && !GameState.CellIsSunk(row, col) ? "hit" : "sea")"
-                              @onclick="() => CellClicked(c_row, c_col)">
-                        </span>
-                    }
-                </div>
+            <h2>Opponent Ships</h2>
+            @foreach (var ship in GameState.GetUnsunkOpponentShips())
+            {
+                <p>@ship.Model - Remaining</p>
             }
         </div>
-        <div class="boats">
-            @foreach (var ship in GameState.OpponentSunkShips)
-            {
-                var topPosition = ship.Coordinates[0].Row * (100 / GameState.GridSize) + 1;
-                if (ship.Orientation == "horizontal")
-                {
-                    topPosition += (100 / GameState.GridSize) - 1;
-                }
-                var leftPosition = ship.Coordinates[0].Column * (100 / GameState.GridSize) + 1;
-                var shipWidth = (100 / GameState.GridSize) - 2;
-                var shipHeight = ship.Size * (100 / GameState.GridSize) - 2;
+    </div>
+    <div class="center-panel">
+        <h1 class="title">
+            Hostilité en Méditerranée
+        </h1>
+        <div class="gameboard">
+            <div class="opponent-grid-container">
+                <div class="grid">
+                    @for (int col = 0; col < GameState.GridSize; col++)
+                    {
+                        <div class="row">
+                            @for (int row = 0; row < GameState.GridSize; row++)
+                            {
+
+                                var cell = GameState.OpponentGrid[row, col];
+                                var c_row = row;
+                                var c_col = col;
+                                <span class="cell opponent @(cell == false ? "miss" : cell == true && !GameState.CellIsSunk(row, col) ? "hit" : "sea")"
+                                      @onclick="() => CellClicked(c_row, c_col)">
+                                </span>
+                            }
+                        </div>
+                    }
+                </div>
+                <div class="boats">
+                    @foreach (var ship in GameState.OpponentShips)
+                    {
+                        var topPosition = ship.Coordinates[0].Row * (100 / GameState.GridSize) + 1;
+                        if (ship.Orientation == "horizontal")
+                        {
+                            topPosition += (100 / GameState.GridSize) - 1;
+                        }
+                        var leftPosition = ship.Coordinates[0].Column * (100 / GameState.GridSize) + 1;
+                        var shipWidth = (100 / GameState.GridSize) - 2;
+                        var shipHeight = ship.Size * (100 / GameState.GridSize) - 2;
 
 
-                <div class="ship @(ship.Orientation)"
-                     style="
+                        <div class="ship @(ship.Orientation)"
+                             style="
                     position: absolute;
                     top: @(topPosition)%;
                     left: @(leftPosition)%;
@@ -42,57 +61,57 @@
                     transform: @(ship.Orientation == "horizontal" ? "rotate(-90deg)" : "none");
                     transform-origin: top left;
                     filter: blur(3px) saturate(0.5);
-                             ">
-                    <img src="assets/ship/ship-@(ship.Model).png" alt="Ship" />
-                </div>
+                                            ">
+                            <img src="assets/ship/ship-@(ship.Model).png" alt="Ship" />
+                        </div>
 
-                foreach (var coord in ship.Coordinates)
-                {
-                    var top = coord.Row * (100 / GameState.GridSize) + 1;
-                    var left = coord.Column * (100 / GameState.GridSize) + 1;
-                    var width = (100 / GameState.GridSize) - 2;
-                    var height = (100 / GameState.GridSize) - 2;
-                    <img src="assets/bubbles.gif" style="position: absolute;
+                        foreach (var coord in ship.Coordinates)
+                        {
+                            var top = coord.Row * (100 / GameState.GridSize) + 1;
+                            var left = coord.Column * (100 / GameState.GridSize) + 1;
+                            var width = (100 / GameState.GridSize) - 2;
+                            var height = (100 / GameState.GridSize) - 2;
+                            <img src="assets/bubbles.gif" style="position: absolute;
                                                     top: @(top)%;
                                                     left: @(left)%;
                                                     width: @(width)%;
                                                     height: @(height)%;
                                                     z-index: 10;" />
-                }
-           
-            }
+                        }
 
-        </div>
-    </div>
-    <div class="player-grid-container">
-        <div class="grid">
-            @for (int col = 0; col < GameState.GridSize; col++)
-            {
-                <div class="row">
-                    @for (int row = 0; row < GameState.GridSize; row++)
+                    }
+
+                </div>
+            </div>
+            <div class="player-grid-container">
+                <div class="grid">
+                    @for (int col = 0; col < GameState.GridSize; col++)
                     {
-                        var cell = GameState.PlayerGrid[row, col];
-                        <span class="cell @(cell == 'O' ? "miss" : "sea")">
-                        </span>
+                        <div class="row">
+                            @for (int row = 0; row < GameState.GridSize; row++)
+                            {
+                                var cell = GameState.PlayerGrid[row, col];
+                                <span class="cell @(cell == 'O' ? "miss" : "sea")">
+                                </span>
+                            }
+                        </div>
                     }
                 </div>
-            }
-        </div>
-        <div class="boats">
-            @foreach (var ship in GameState.PlayerShips)
-            {
-                var topPosition = ship.Coordinates[0].Row * (100 / GameState.GridSize) + 1;
-                if (ship.Orientation == "horizontal")
-                {
-                    topPosition += (100 / GameState.GridSize) - 1;
-                }
-                var leftPosition = ship.Coordinates[0].Column * (100 / GameState.GridSize) + 1;
-                var shipWidth = (100 / GameState.GridSize) - 2;
-                var shipHeight = ship.Size * (100 / GameState.GridSize) - 2;
+                <div class="boats">
+                    @foreach (var ship in GameState.PlayerShips)
+                    {
+                        var topPosition = ship.Coordinates[0].Row * (100 / GameState.GridSize) + 2;
+                        if (ship.Orientation == "horizontal")
+                        {
+                            topPosition += (100 / GameState.GridSize) - 1;
+                        }
+                        var leftPosition = ship.Coordinates[0].Column * (100 / GameState.GridSize) + 1;
+                        var shipWidth = (100 / GameState.GridSize) - 2;
+                        var shipHeight = ship.Size * (100 / GameState.GridSize) - 2;
 
 
-                <div class="ship @(ship.Orientation)"
-                     style="
+                        <div class="ship @(ship.Orientation)"
+                             style="
                     position: absolute;
                     top: @(topPosition)%;
                     left: @(leftPosition)%;
@@ -101,84 +120,155 @@
                     transform: @(ship.Orientation == "horizontal" ? "rotate(-90deg)" : "none");
                     transform-origin: top left;
                     filter: @(ship.IsSinked? "blur(3px) saturate(0.5)" :"");
-                         ">
-                    <img src="assets/ship/ship-@(ship.Model).png" alt="Ship" />
-                </div>
+                                        ">
+                            <img src="assets/ship/ship-@(ship.Model).png" alt="Ship" />
+                        </div>
 
-                if (ship.HitCoordinates.Count != 0)
-                {
-                    foreach (var coord in ship.HitCoordinates)
-                    {
-                        var top = coord.Row * (100 / GameState.GridSize) + 1;
-                        var left = coord.Column * (100 / GameState.GridSize) + 1;
-                        var width = (100 / GameState.GridSize) - 2;
-                        var height = (100 / GameState.GridSize) - 2;
-                        <img src=@(ship.IsSinked ? "assets/bubbles.gif" : "assets/fire.gif") style="position: absolute;
+                        if (ship.HitCoordinates.Count != 0)
+                        {
+                            foreach (var coord in ship.HitCoordinates)
+                            {
+                                var top = coord.Row * (100 / GameState.GridSize) + 1;
+                                var left = coord.Column * (100 / GameState.GridSize) + 1;
+                                var width = (100 / GameState.GridSize) - 2;
+                                var height = (100 / GameState.GridSize) - 2;
+                                <img src=@(ship.IsSinked ? "assets/bubbles.gif" : "assets/fire.gif") style="position: absolute;
                                                         top: @(top)%;
                                                         left: @(left)%;
                                                         width: @(width)%;
                                                         height: @(height)%;
                                                         z-index: 10;" />
+                            }
+                        }
                     }
-                }
-            }
-    
+
+                </div>
+            </div>
         </div>
     </div>
-    <h1>
-        @(GameState.GameStatus == GameStatusDto.Over ? GameState.PlayerWin ? "You win" : "You Lose" : "")
-    </h1>
-
+    <div class="right-panel">
+        <h2>Move History</h2>
+        <div class="move-history">
+                @foreach (var move in GameState.MovesHistory)
+                {
+                    <p>@move.ToString()</p>
+                }
+            
+        </div>
+        <span class="undo-button"
+              @onclick="() => Undo()">
+              Undo
+        </span>
+    </div>
 </div>
+@if (GameState.GameStatus == GameStatusDto.Over)
+{
+    <div class="status-message">
+        <span>@(GameState.PlayerWin ? "You win!" : "You lose!")</span>
+        <button class="btn btn-primary" @onclick="StartNewGameAsync">Start New Game</button>
+    </div>
+}
 
 @code {
     [Inject] private GameState GameState { get; set; }
 
-    private async void CellClicked(int row, int col)
+    private async Task CellClicked(int row, int col)
     {
         await GameState.SendShootAsync(row, col);
+        StateHasChanged();
+    }
+
+    private async Task Undo()
+    {
+        await GameState.UndoLastMoveAsync();
+        StateHasChanged();
+    }
+
+    private async Task StartNewGameAsync()
+    {
+        await GameState.StartNewGameAsync();
         StateHasChanged();
     }
 }
 
 <style>
+    body{
+        margin:0;
+    }
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        background-color: #1D2D44;
+        color: #F0EBD8;
+        margin:0;
+        height: 100vh;
+    }
+
+    .left-panel, .right-panel {
+        flex: 1;
+        background-color: #3E5C76;
+        padding: 20px;
+        margin: 20px;
+        border-radius: 8px;
+        margin: 0 20px;
+        margin: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .undo-button{
+        width: 100%;
+        background-color: #748CAB;
+        padding: 10px;
+        text-align: center;
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+
+    .move-history {
+        height: 100%;
+        overflow-y: scroll;
+    }
+
+    .center-panel {
+        flex: 3;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100vh
+    }
+
     .gameboard {
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: space-around;
         align-items: center;
-        position: relative;
+        height: 100vh;
     }
 
     .grid {
         display: grid;
         grid-template-columns: repeat(@(GameState.GridSize), 1fr);
         grid-template-rows: repeat(@(GameState.GridSize), 1fr);
-        background-image: url('assets/sea.jpg');
-        background-size: cover;
-        position: relative;
+        gap: 1px;
         width: 100%;
         height: 100%;
+        border-radius: 8px;
     }
 
     .player-grid-container {
         position: relative;
-        width: 40vh;
-        height: 40vh;
+        width: 35vh;
+        height: 35vh;
     }
 
     .opponent-grid-container {
         position: relative;
-        width: 50vh;
-        height: 50vh;
-        margin-bottom: 20px;
-    }
-
-    .boats {
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        width: 48vh;
+        height: 48vh;
     }
 
     .cell {
@@ -188,8 +278,9 @@
         background-size: cover;
         background-position: center;
         z-index: 5;
+        background-color: #748CAB;
+        border: 1px solid #F0EBD822;
     }
-
         .cell.hit {
             background-image: url('assets/hit.png');
             cursor: not-allowed;
@@ -203,7 +294,7 @@
         }
 
         .cell.opponent.sea:hover {
-            background-color: rgba(255, 255, 255, 0.5);
+            background-color: #3E5C76;
         }
 
     .ship {
@@ -214,4 +305,15 @@
             width: 100%;
             height: 100%;
         }
+
+    .status-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2em;
+        color: #4caf50;
+        font-size: 1.5em;
+        color: #4caf50;
+    }
 </style>

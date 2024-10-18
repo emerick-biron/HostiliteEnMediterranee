@@ -1,8 +1,6 @@
 ﻿using HostiliteEnMediterranee.Client.Entities;
 using HostiliteEnMediterranee.Models.Dto;
 using HostiliteEnMediterranee.Models.Requests;
-using Microsoft.AspNetCore.Components;
-using System.Runtime.CompilerServices;
 
 namespace HostiliteEnMediterranee.Client.Services
 {
@@ -15,8 +13,10 @@ namespace HostiliteEnMediterranee.Client.Services
         public bool?[,] OpponentGrid { get; private set; }
         public GameStatusDto GameStatus { get; set; }
         public bool PlayerWin { get; set; }
-        public List<Ship> PlayerShips { get; private set; } = new List<Ship>();
-        public List<Ship> OpponentSunkShips { get; private set; } = new List<Ship>();
+        public List<Ship> PlayerShips { get; private set; }
+        public List<Ship> OpponentShips { get; private set; }
+        public List<Move> MovesHistory { get; private set; }
+
 
         private readonly GameApiService _gameApiService;
         public GameState(GameApiService gameApiService)
@@ -35,6 +35,8 @@ namespace HostiliteEnMediterranee.Client.Services
             var response = await _gameApiService.StartGameAsync();
             Id = response.GameId;
             InitPlayerShips(response.PlayerShips);
+
+            MovesHistory  = new List<Move>();
         }
 
         private void InitializeGrids()
@@ -51,6 +53,8 @@ namespace HostiliteEnMediterranee.Client.Services
 
         private void InitPlayerShips(List<ShipDto> playerShips)
         {
+            PlayerShips = new List<Ship>();
+            OpponentShips = new List<Ship>();
             foreach (var ship in playerShips)
             {
                 var newShip = new Ship(ship.Model, ship.Coordinates);
@@ -72,11 +76,21 @@ namespace HostiliteEnMediterranee.Client.Services
                 return;
             }
             var sendShootResponse = await _gameApiService.SendShootAsync(new ShootingRequest(new CoordinatesDto(row, col)), Id);
+            MovesHistory.Add(new Move
+            {
+                Player = "Player",
+                Row = row,
+                Column = col,
+                IsHit = sendShootResponse.HasHit,
+                AdditionalInfo = sendShootResponse.OpponentShipSunk != null ? $" - Sunk {sendShootResponse.OpponentShipSunk.Model}" : ""
+            });
+
             GameStatus = sendShootResponse.GameStatus;
             UpdateOpponentGrid(row, col, sendShootResponse.HasHit);
             foreach (CoordinatesDto opponentShoot in sendShootResponse.OpponentShoots)
             {
                 UpdatePlayerGrid(opponentShoot.Row, opponentShoot.Column);
+                
             }
             if (sendShootResponse.GameStatus == GameStatusDto.Over)
             {
@@ -84,7 +98,46 @@ namespace HostiliteEnMediterranee.Client.Services
             }
             if (sendShootResponse.OpponentShipSunk != null)
             {
-                OpponentSunkShips.Add(new Ship(sendShootResponse.OpponentShipSunk.Model, sendShootResponse.OpponentShipSunk.Coordinates));
+                OpponentShips.Add(new Ship(sendShootResponse.OpponentShipSunk.Model, sendShootResponse.OpponentShipSunk.Coordinates));
+            }
+        }
+
+        public async Task UndoLastMoveAsync()
+        {
+            if (MovesHistory.Count == 0)
+            {
+                return;
+            }
+
+            var awaitResponse = await _gameApiService.UndoLastPlayerTurnAsync(Id);
+            
+            foreach (var shot in awaitResponse.UndoneShots)
+            {
+                if (shot.Shooter == "Player")
+                {
+                    OpponentGrid[shot.TargetCoordinates.Row, shot.TargetCoordinates.Column] = null;
+                    if (shot.HitShip != null)
+                    {
+                        OpponentShips.RemoveAll(ship => ship.Model == shot.HitShip.Model);
+                    }
+                }
+                else
+                {
+                    if (shot.HitShip != null)
+                    {
+                        var ship = PlayerShips.Find(ship => ship.Model == shot.HitShip.Model);
+                        //find hit coordinate by comparing coordinates and remove it
+                        var hitCoord = ship.HitCoordinates.Find(coord => coord.Row == shot.TargetCoordinates.Row && coord.Column == shot.TargetCoordinates.Column);
+                        ship.HitCoordinates.Remove(hitCoord);
+                        ship.IsSinked = false;
+                        PlayerGrid[shot.TargetCoordinates.Row, shot.TargetCoordinates.Column] = ship.Model;
+                    }
+                    else
+                    {
+                        PlayerGrid[shot.TargetCoordinates.Row, shot.TargetCoordinates.Column] = '/';
+                    }
+                }
+                MovesHistory.RemoveAt(MovesHistory.Count - 1);
             }
         }
 
@@ -92,19 +145,30 @@ namespace HostiliteEnMediterranee.Client.Services
         {
             if (IsWithinBounds(row, col))
             {
+                Ship? ship = null;
                 if (PlayerGrid[row, col] == '/')
                 {
                     PlayerGrid[row, col] = 'O';
-                    return;
                 }
-                char shipModel = PlayerGrid[row, col];
-                Ship ship = PlayerShips.Find(s => s.Model == shipModel);
-                ship.HitCoordinates.Add(new CoordinatesDto(row, col));
-                if (ship.HitCoordinates.Count == ship.Size)
+                else
                 {
-                    ship.IsSinked = true;
+                    char shipModel = PlayerGrid[row, col];
+                    ship = PlayerShips.Find(s => s.Model == shipModel);
+                    ship.HitCoordinates.Add(new CoordinatesDto(row, col));
+                    if (ship.HitCoordinates.Count == ship.Size)
+                    {
+                        ship.IsSinked = true;
+                    }
+                    PlayerGrid[row, col] = 'X';
                 }
-                PlayerGrid[row, col] = 'X';
+                MovesHistory.Add(new Move
+                {
+                    Player = "Opponent",
+                    Row = row,
+                    Column = col,
+                    IsHit = PlayerGrid[row, col] == 'X',
+                    AdditionalInfo = ship != null && ship.IsSinked ? $" - Sunk {ship.Model}" : ""
+                });
             }
         }
 
@@ -118,7 +182,7 @@ namespace HostiliteEnMediterranee.Client.Services
 
         public bool CellIsSunk(int row, int col)
         {
-            foreach (var ship in OpponentSunkShips)
+            foreach (var ship in OpponentShips)
             {
                 foreach (var coord in ship.Coordinates)
                 {
@@ -132,6 +196,10 @@ namespace HostiliteEnMediterranee.Client.Services
         {
             return row >= 0 && row < GridSize && col >= 0 && col < GridSize;
         }
+
+        public List<Ship> GetUnsunkPlayerShips() => PlayerShips.Where(ship => !ship.IsSinked).ToList();
+        public List<Ship> GetUnsunkOpponentShips() => OpponentShips.Where(ship => !ship.IsSinked).ToList();
+
 
     }
 }
